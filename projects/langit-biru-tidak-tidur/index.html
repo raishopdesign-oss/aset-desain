@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080">
+<title>Langit Biru &amp; Begadang</title>
+<style>
+@font-face{font-family:Archivo;src:url(/assets/fonts/ArchivoBlack/ArchivoBlack-Regular.ttf)}
+@font-face{font-family:Jakarta;font-weight:500;src:url(/assets/fonts/PlusJakartaSans/PlusJakartaSans-Medium.ttf)}
+@font-face{font-family:Jakarta;font-weight:700;src:url(/assets/fonts/PlusJakartaSans/PlusJakartaSans-Bold.ttf)}
+@font-face{font-family:Jakarta;font-weight:800;src:url(/assets/fonts/PlusJakartaSans/PlusJakartaSans-ExtraBold.ttf)}
+@font-face{font-family:Caveat;font-weight:700;src:url(/assets/fonts/Caveat/Caveat-Bold.ttf)}
+
+:root{
+  --ink:#0d1b2a; --cream:#fff7ea; --space:#0e1530; --night:#090722;
+  --sun:#ffc83d; --blue:#3da5ff; --red:#ff5a4e; --violet:#9b5cff; --skin:#ffd6a5;
+}
+html,body{margin:0;background:#000}
+#stage{position:relative;width:1080px;height:1920px;overflow:hidden;font-family:Jakarta,sans-serif;color:#fff;background:var(--space)}
+.abs{position:absolute}
+.full{position:absolute;inset:0}
+svg.full{width:1080px;height:1920px}
+.icon svg{width:100%;height:100%;display:block}
+
+/* backgrounds */
+#bgSpace{background:radial-gradient(1200px 900px at 50% 30%,#1b2550 0%,var(--space) 70%)}
+#bgDay{background:linear-gradient(180deg,#1666e0 0%,#3d98ff 45%,#9fd6ff 75%,#d9f0ff 100%);opacity:0}
+#bgNight{background:radial-gradient(900px 900px at 75% 12%,#2b2466 0%,var(--night) 65%);opacity:0}
+#bgOutro{opacity:0}
+#bgOutro .top{position:absolute;left:0;right:0;top:0;height:960px;background:linear-gradient(180deg,#1666e0,#7cc6ff)}
+#bgOutro .bot{position:absolute;left:0;right:0;bottom:0;height:960px;background:linear-gradient(180deg,#1b1650,var(--night))}
+
+/* progress */
+#prog{position:absolute;left:0;top:0;height:10px;width:1080px;background:var(--sun);transform-origin:0 50%;transform:scaleX(0);z-index:20}
+
+/* headers */
+.hdr{position:absolute;left:80px;right:80px;top:150px;opacity:0}
+.hdr .num{display:inline-block;font-family:Archivo;font-size:34px;color:var(--ink);background:var(--sun);padding:10px 22px;border-radius:999px;letter-spacing:2px}
+.hdr .h{font-family:Archivo;font-size:96px;line-height:1.02;margin-top:22px;letter-spacing:-1px}
+.hdr .h span{display:inline-block}
+
+/* hook */
+#hook .chip{left:50%;top:260px;transform:translateX(-50%);font-family:Archivo;font-size:36px;letter-spacing:6px;color:var(--ink);background:var(--sun);padding:16px 34px;border-radius:999px;white-space:nowrap}
+#hook .q{left:0;right:0;top:330px;text-align:center;font-family:Archivo;font-size:560px;line-height:1;color:var(--sun)}
+#hook .card{left:90px;right:90px;height:190px;border-radius:44px;display:flex;align-items:center;gap:34px;padding:0 44px;font-family:Archivo;font-size:62px;line-height:1.05;box-sizing:border-box}
+#hook .card .icon{width:104px;height:104px;flex:none}
+#hook .c1{top:1000px;background:var(--blue);color:#fff}
+#hook .c2{top:1230px;background:var(--violet);color:#fff}
+#hook .timer{right:110px;top:340px;width:170px;height:170px}
+#hook .timer b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:Archivo;font-size:40px;color:#fff;line-height:.9;text-align:center}
+
+/* sky scene cards */
+.card2{position:absolute;left:90px;width:900px;background:var(--cream);color:var(--ink);border-radius:44px;box-shadow:0 30px 80px rgba(0,0,0,.25);opacity:0}
+#waveCard{top:440px;height:420px}
+#waveCard .lab{position:absolute;left:44px;font-weight:800;font-size:38px}
+#rayCard{top:440px;height:420px;display:flex;flex-direction:column;justify-content:center;padding:0 60px;box-sizing:border-box}
+#rayCard .t{font-family:Archivo;font-size:92px;line-height:1;color:#1666e0}
+#rayCard .s{font-family:Caveat;font-weight:700;font-size:58px;margin-top:18px;color:var(--ink)}
+.note{font-family:Caveat;font-weight:700;font-size:60px;color:#fff;white-space:nowrap;opacity:0}
+.pill{font-weight:800;font-size:40px;padding:16px 30px;border-radius:999px;white-space:nowrap;opacity:0}
+
+/* night scene */
+#battery{left:50%;top:420px;width:300px;height:120px;margin-left:-150px;opacity:0}
+#battery .body{position:absolute;left:0;top:0;width:276px;height:120px;border:8px solid #fff;border-radius:28px;box-sizing:border-box;padding:10px}
+#battery .cap{position:absolute;right:0;top:36px;width:18px;height:48px;background:#fff;border-radius:0 10px 10px 0}
+#battery .fill{width:100%;height:100%;border-radius:14px;background:#4cd964;transform-origin:0 50%}
+#days{left:0;right:0;top:1190px;display:flex;justify-content:center;gap:28px}
+#days .d{width:270px;height:96px;border-radius:999px;border:5px solid rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center;font-family:Archivo;font-size:40px;letter-spacing:2px;color:rgba(255,255,255,.5);box-sizing:border-box;position:relative;overflow:hidden;opacity:0}
+#days .d i{position:absolute;inset:0;background:var(--sun);transform:scaleX(0);transform-origin:0 50%;border-radius:999px}
+#days .d span{position:relative}
+.chips{left:0;right:0;top:1320px;display:flex;justify-content:center;gap:24px}
+.chips .pill{display:flex;align-items:center;gap:14px}
+.chips .pill .icon{width:48px;height:48px}
+#blackout{background:#000;opacity:0;z-index:15}
+#msLabel{left:0;right:0;top:860px;text-align:center;z-index:16;opacity:0}
+#msLabel .a{font-family:Archivo;font-size:120px;color:#fff;letter-spacing:4px}
+#msLabel .b{font-family:Caveat;font-weight:700;font-size:64px;color:var(--sun)}
+
+/* outro */
+#outro .t1{left:0;right:0;top:420px;text-align:center;font-family:Archivo;font-size:104px;line-height:1.02;color:#fff}
+#outro .t2{left:0;right:0;top:1150px;text-align:center;font-family:Archivo;font-size:104px;line-height:1.02;color:var(--sun)}
+#outro .t1 span,#outro .t2 span{display:inline-block}
+#outro .bed{left:50%;top:1400px;width:130px;height:130px;margin-left:-65px;color:#fff}
+#outro .z{font-family:Archivo;color:#fff;font-size:64px}
+#outro .brand{left:50%;top:1830px;transform:translateX(-50%);font-family:Archivo;font-size:30px;letter-spacing:6px;color:var(--ink);background:var(--sun);padding:12px 28px;border-radius:999px;white-space:nowrap;opacity:0}
+
+/* captions */
+#cap{position:absolute;left:70px;right:70px;top:1560px;height:220px;display:flex;align-items:center;justify-content:center;z-index:18}
+#cap .box{background:rgba(6,10,28,.72);border-radius:36px;padding:26px 40px;text-align:center;font-weight:800;font-size:56px;line-height:1.2;max-width:940px;box-sizing:border-box}
+#cap .w{color:rgba(255,255,255,.55)}
+#cap .w.on{color:#fff}
+#cap .w.now{color:var(--sun)}
+</style>
+</head>
+<body>
+<div id="stage">
+  <!-- backgrounds -->
+  <div id="bgSpace" class="full"></div>
+  <div id="bgDay" class="full"></div>
+  <div id="bgNight" class="full"></div>
+  <div id="bgOutro" class="full"><div class="top"></div><div class="bot"></div></div>
+  <svg id="stars" class="full" viewBox="0 0 1080 1920"></svg>
+
+  <!-- HOOK -->
+  <div id="hook" class="full">
+    <div class="abs chip">SAINS 1 MENIT</div>
+    <div class="abs q">?</div>
+    <div class="abs timer">
+      <svg viewBox="0 0 170 170" width="170" height="170">
+        <circle cx="85" cy="85" r="72" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="14"/>
+        <circle id="timerArc" cx="85" cy="85" r="72" fill="none" stroke="#ffc83d" stroke-width="14" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" transform="rotate(-90 85 85)"/>
+      </svg>
+      <b>60<br><small style="font-size:22px;letter-spacing:2px">DETIK</small></b>
+    </div>
+    <div class="abs card c1"><div class="icon" data-icon="sun"></div><div>Kenapa langit biru?</div></div>
+    <div class="abs card c2"><div class="icon" data-icon="moon"></div><div>Tidak tidur 3 hari?</div></div>
+  </div>
+
+  <!-- SCENE 1 : SKY -->
+  <div id="s1" class="full">
+    <svg class="full" viewBox="0 0 1080 1920">
+      <defs>
+        <radialGradient id="sunG"><stop offset="0" stop-color="#fff6c8"/><stop offset=".6" stop-color="#ffd84d"/><stop offset="1" stop-color="#ffb41f"/></radialGradient>
+        <radialGradient id="sunGlow"><stop offset="0" stop-color="rgba(255,220,90,.55)"/><stop offset="1" stop-color="rgba(255,220,90,0)"/></radialGradient>
+      </defs>
+      <!-- sun + spectrum -->
+      <g id="sunG1">
+        <circle cx="180" cy="640" r="190" fill="url(#sunGlow)"/>
+        <circle cx="180" cy="640" r="86" fill="url(#sunG)"/>
+      </g>
+      <line id="beam" x1="270" y1="640" x2="560" y2="640" stroke="#fff" stroke-width="26" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/>
+      <g id="spectrum"></g>
+      <!-- earth + atmosphere -->
+      <g id="earth">
+        <circle cx="540" cy="2350" r="1400" fill="rgba(160,215,255,.16)"/>
+        <circle cx="540" cy="2350" r="1240" fill="rgba(160,215,255,.14)"/>
+        <circle cx="540" cy="2400" r="1080" fill="#2bb673"/>
+        <circle cx="540" cy="2400" r="1080" fill="none" stroke="#1f8f59" stroke-width="18"/>
+      </g>
+      <g id="mols"></g>
+      <line id="hitBeam" x1="110" y1="750" x2="540" y2="1100" stroke="#fff" stroke-width="14" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/>
+      <g id="rays"></g>
+      <line id="redRay" x1="540" y1="1100" x2="880" y2="1375" stroke="#ff5a4e" stroke-width="14" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/>
+      <g id="hero">
+        <circle id="heroRing" cx="540" cy="1100" r="64" fill="none" stroke="#fff" stroke-width="5" opacity="0"/>
+        <circle cx="527" cy="1100" r="17" fill="#fff"/>
+        <circle cx="553" cy="1100" r="17" fill="#e6f3ff"/>
+      </g>
+      <g id="eyeRays"></g>
+      <g id="eyeBadge">
+        <circle cx="540" cy="1250" r="78" fill="#fff"/>
+        <g transform="translate(492 1202) scale(4)" stroke="#0d1b2a" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/>
+          <circle cx="12" cy="12" r="3" fill="#1666e0" stroke="#1666e0"/>
+        </g>
+      </g>
+    </svg>
+    <div class="abs note" id="nWhite" style="left:250px;top:520px">cahaya putih</div>
+    <div class="abs note" id="nRainbow" style="left:600px;top:790px">= semua warna!</div>
+    <div class="abs note" id="nMol" style="left:120px;top:880px">molekul udara (N₂, O₂)</div>
+    <div class="abs pill" id="pBlue" style="left:120px;top:1420px;background:#3da5ff;color:#fff">biru → ke segala arah</div>
+    <div class="abs pill" id="pRed" style="left:560px;top:1440px;background:#ff5a4e;color:#fff;font-size:34px">merah → lurus</div>
+
+    <div id="waveCard" class="card2">
+      <div class="lab" style="top:34px;color:#1f6fe0">Biru · gelombang pendek</div>
+      <div class="lab" style="top:226px;color:#e0473d">Merah · gelombang panjang</div>
+      <svg width="900" height="420" style="position:absolute;inset:0">
+        <path id="waveB" fill="none" stroke="#3da5ff" stroke-width="10" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/>
+        <path id="waveR" fill="none" stroke="#ff5a4e" stroke-width="10" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/>
+      </svg>
+    </div>
+    <div id="rayCard" class="card2">
+      <div class="t">HAMBURAN<br>RAYLEIGH</div>
+      <div class="s">biru terhambur ± 6× lebih banyak dari merah</div>
+    </div>
+
+    <div class="hdr" id="h1"><span class="num">01</span><div class="h"><span>Kenapa</span> <span>langit</span> <span>biru?</span></div></div>
+  </div>
+
+  <!-- SCENE 2 : NIGHT -->
+  <div id="s2" class="full">
+    <svg class="full" viewBox="0 0 1080 1920">
+      <g id="moon">
+        <circle cx="905" cy="300" r="120" fill="rgba(255,240,200,.12)"/>
+        <circle cx="905" cy="300" r="70" fill="#fff3cf"/>
+        <circle cx="935" cy="280" r="62" fill="#1d1850"/>
+      </g>
+      <g id="blobs"></g>
+      <g id="face">
+        <circle cx="540" cy="860" r="235" fill="#ffd6a5"/>
+        <g id="eyeL"><ellipse cx="455" cy="830" rx="44" ry="50" fill="#fff"/><circle class="pupil" cx="455" cy="840" r="20" fill="#0d1b2a"/></g>
+        <g id="eyeR"><ellipse cx="625" cy="830" rx="44" ry="50" fill="#fff"/><circle class="pupil" cx="625" cy="840" r="20" fill="#0d1b2a"/></g>
+        <rect id="lidL" x="405" y="778" width="100" height="104" fill="#f2bf85"/>
+        <rect id="lidR" x="575" y="778" width="100" height="104" fill="#f2bf85"/>
+        <path id="bags" d="M415 900 q40 26 80 0 M585 900 q40 26 80 0" stroke="#8a5cc8" stroke-width="10" fill="none" stroke-linecap="round" opacity="0"/>
+        <path id="browL" d="M405 760 L500 772" stroke="#0d1b2a" stroke-width="14" stroke-linecap="round"/>
+        <path id="browR" d="M580 772 L675 760" stroke="#0d1b2a" stroke-width="14" stroke-linecap="round"/>
+        <path id="mouthN" d="M470 985 q70 30 140 0" stroke="#0d1b2a" stroke-width="14" fill="none" stroke-linecap="round"/>
+        <path id="mouthF" d="M470 1005 q70 -40 140 0" stroke="#0d1b2a" stroke-width="14" fill="none" stroke-linecap="round" opacity="0"/>
+        <g id="anger" opacity="0" stroke="#ff5a4e" stroke-width="12" stroke-linecap="round">
+          <path d="M720 640 l40 -40 M745 680 l60 -20 M690 610 l20 -55"/>
+        </g>
+      </g>
+      <g id="zzz" font-family="Archivo" fill="#fff" opacity="0">
+        <text x="760" y="700" font-size="70">Z</text><text x="820" y="630" font-size="54">z</text><text x="866" y="575" font-size="40">z</text>
+      </g>
+    </svg>
+    <div id="battery" class="abs"><div class="body"><div class="fill"></div></div><div class="cap"></div></div>
+    <div id="days" class="abs">
+      <div class="d"><i></i><span>HARI 1</span></div>
+      <div class="d"><i></i><span>HARI 2</span></div>
+      <div class="d"><i></i><span>HARI 3</span></div>
+    </div>
+    <div class="abs chips" id="chips1">
+      <div class="pill" style="background:#fff;color:#0d1b2a"><span class="icon" data-icon="brain"></span>Fokus ↓</div>
+      <div class="pill" style="background:#ff5a4e;color:#fff"><span class="icon" data-icon="frown"></span>Emosi meledak</div>
+    </div>
+    <div class="abs chips" id="chips2">
+      <div class="pill" style="background:#9b5cff;color:#fff"><span class="icon" data-icon="eye-closed"></span>Tidur mikro: tertidur beberapa detik</div>
+    </div>
+    <div class="abs chips" id="chips3">
+      <div class="pill" style="background:#ffc83d;color:#0d1b2a"><span class="icon" data-icon="sparkles"></span>Halusinasi</div>
+      <div class="pill" style="background:#fff;color:#0d1b2a"><span class="icon" data-icon="cloud-fog"></span>Sulit mikir</div>
+      <div class="pill" style="background:#ff5a4e;color:#fff"><span class="icon" data-icon="shield-off"></span>Imun ↓</div>
+    </div>
+    <div class="hdr" id="h2"><span class="num">02</span><div class="h"><span>Tidak</span> <span>tidur</span> <span>3</span> <span>hari?</span></div></div>
+  </div>
+  <div id="blackout" class="full"></div>
+  <div id="msLabel" class="abs"><div class="a">ZZZ…</div><div class="b">otak “mati lampu” sejenak</div></div>
+
+  <!-- OUTRO -->
+  <div id="outro" class="full">
+    <svg class="full" viewBox="0 0 1080 1920">
+      <g id="oSun"><circle cx="860" cy="250" r="150" fill="rgba(255,220,90,.35)"/><circle cx="860" cy="250" r="84" fill="#ffd84d"/></g>
+      <g id="oMoon"><circle cx="170" cy="1020" r="52" fill="#fff3cf"/><circle cx="194" cy="1003" r="47" fill="#1d1850"/></g>
+    </svg>
+    <div class="abs t1"><span>Nikmati</span> <span>langit</span><br><span>birunya…</span></div>
+    <div class="abs t2"><span>tapi</span> <span>jangan</span><br><span>lupa</span> <span>tidur!</span></div>
+    <div class="abs bed icon" data-icon="bed-double"></div>
+    <div class="abs z" id="oz1" style="left:730px;top:1430px">Z</div>
+    <div class="abs z" id="oz2" style="left:790px;top:1390px;font-size:48px">z</div>
+    <div class="abs brand">SAINS 1 MENIT</div>
+  </div>
+
+  <div id="cap"><div class="box"></div></div>
+  <div id="prog"></div>
+</div>
+
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/CustomEase.min.js"></script>
+<script src="words.js"></script>
+<script src="timeline.js"></script>
+</body>
+</html>
