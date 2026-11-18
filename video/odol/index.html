@@ -1,0 +1,703 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kenapa Disebut Odol</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Caveat:wght@600;700&display=block" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #F1E9DA;
+    --desk: #E4D7BF;
+    --ink: #1F3A4D;
+  }
+  html, body { margin: 0; height: 100%; background: #14232e; overflow: hidden; }
+  #stage {
+    position: absolute; left: 50%; top: 50%;
+    width: 1080px; height: 1920px;
+    transform-origin: 0 0;
+    background: var(--desk);
+    overflow: hidden;
+  }
+  #world, #wipeSvg { position: absolute; inset: 0; width: 1080px; height: 1920px; }
+  #grain {
+    position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; pointer-events: none;
+    mix-blend-mode: multiply; opacity: .4;
+  }
+  #vignette {
+    position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(60,40,15,.28) 100%);
+  }
+  .b { transform-box: fill-box; transform-origin: center; }
+  .hb { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-variation-settings: "opsz" 96; }
+  .hm { font-family: "Bricolage Grotesque", sans-serif; font-weight: 500; font-variation-settings: "opsz" 96; }
+  .hw { font-family: "Caveat", cursive; font-weight: 700; }
+  #debug {
+    position: fixed; left: 12px; right: 12px; bottom: 12px; display: none;
+    gap: 10px; align-items: center; color: #fff; font: 14px system-ui, sans-serif;
+  }
+  #debug input { flex: 1; }
+  #debug span { min-width: 64px; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <svg id="world" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+    <defs id="defs">
+      <!-- potongan kertas: pinggiran putih sobek + bayangan -->
+      <filter id="cut" x="-25%" y="-25%" width="150%" height="150%">
+        <feMorphology in="SourceAlpha" operator="dilate" radius="10" result="d" />
+        <feTurbulence type="fractalNoise" baseFrequency="0.07" numOctaves="2" seed="4" result="n" />
+        <feDisplacementMap in="d" in2="n" scale="12" xChannelSelector="R" yChannelSelector="G" result="rough" />
+        <feFlood flood-color="#FFFCF4" />
+        <feComposite in2="rough" operator="in" result="paper" />
+        <feGaussianBlur in="rough" stdDeviation="5" result="sb" />
+        <feOffset in="sb" dx="5" dy="9" result="so" />
+        <feFlood flood-color="#4a3410" flood-opacity=".3" />
+        <feComposite in2="so" operator="in" result="shadow" />
+        <feMerge><feMergeNode in="shadow" /><feMergeNode in="paper" /><feMergeNode in="SourceGraphic" /></feMerge>
+      </filter>
+      <!-- lembar latar besar: bayangan saja, pinggiran kasar -->
+      <filter id="sheet" x="-5%" y="-5%" width="110%" height="110%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="9" result="n" />
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="14" xChannelSelector="R" yChannelSelector="G" result="r" />
+        <feGaussianBlur in="r" stdDeviation="7" result="sb" />
+        <feOffset in="sb" dx="0" dy="10" result="so" />
+        <feColorMatrix in="so" type="matrix" values="0 0 0 0 .3  0 0 0 0 .2  0 0 0 0 .05  0 0 0 .35 0" result="sh" />
+        <feMerge><feMergeNode in="sh" /><feMergeNode in="r" /></feMerge>
+      </filter>
+      <!-- garis tangan bergetar -->
+      <filter id="wob" x="-10%" y="-30%" width="120%" height="160%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="2" result="n" />
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="6" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+      <!-- cap tinta: aus di beberapa bagian -->
+      <filter id="grunge" x="-10%" y="-10%" width="120%" height="120%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n" />
+        <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.2 1.5" result="m" />
+        <feComposite in="SourceGraphic" in2="m" operator="in" />
+      </filter>
+      <pattern id="ht" width="11" height="11" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <circle cx="5.5" cy="5.5" r="2.4" fill="#1F3A4D" />
+      </pattern>
+      <pattern id="htw" width="11" height="11" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <circle cx="5.5" cy="5.5" r="2.2" fill="#FFFCF4" />
+      </pattern>
+      <pattern id="htr" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(30)">
+        <circle cx="6" cy="6" r="2.6" fill="#E2483D" />
+      </pattern>
+    </defs>
+    <g id="cam"></g>
+  </svg>
+  <canvas id="grain" width="540" height="960"></canvas>
+  <div id="vignette"></div>
+  <svg id="wipeSvg" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg"><g id="wipe"></g></svg>
+</div>
+<div id="debug"><button id="dbPlay">play/jeda</button><input id="dbRange" type="range" min="0" max="83.4" step="0.0833" value="0" /><span id="dbTime">0.00</span></div>
+<audio id="vo" src="vo.m4a" preload="auto"></audio>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+(() => {
+"use strict";
+const DUR = 83.4;          // total durasi (VO 82,2 dtk + jeda penutup)
+const FPS = 12;            // stop motion: dunia hanya berubah 12x per detik
+const W = 1080, H = 1920;
+const INK = "#1F3A4D", MINT = "#3FB8A0", RED = "#E2483D", WHITE = "#FCF8EF",
+      SAND = "#D8C29A", PALE = "#C9E8DD", GOLD = "#E9B44C", WOOD = "#C79F6B", SHEET = "#F6F0E3";
+const S = (w = 6) => `stroke="${INK}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
+const params = new URLSearchParams(location.search);
+const CLEAN = params.has("clean"), DEBUG = params.has("debug");
+
+// PRNG deterministik
+function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const hash = (n) => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+
+// ---------- pembuat markup ----------
+const clipDefs = [];
+const T = (s, x, y, cls, size, fill, extra = "") =>
+  `<text x="${x}" y="${y}" class="${cls}" font-size="${size}" fill="${fill}" text-anchor="middle" ${extra}>${s}</text>`;
+// P = potongan yang bisa dianimasikan: posisi luar · getar stop-motion · target GSAP · isi
+const P = (id, x, y, inner, o = {}) => {
+  const { rot = 0, sc = 1, cut = true } = o;
+  return `<g transform="translate(${x} ${y}) rotate(${rot}) scale(${sc})"><g class="b"><g id="${id}"><g ${cut ? 'filter="url(#cut)"' : ""}>${inner}</g></g></g></g>`;
+};
+// teks yang "ditulis" (dibuka dari kiri)
+const WR = (id, inner, w, h) => {
+  clipDefs.push(`<clipPath id="cl-${id}"><rect id="cr-${id}" x="${-w / 2}" y="${-h / 2}" width="0" height="${h}" /></clipPath>`);
+  return `<g clip-path="url(#cl-${id})">${inner}</g>`;
+};
+
+// ---------- ilustrasi ----------
+function tube(band = MINT, label = "") {
+  return `
+  <path d="M-300,-92 L230,-70 L230,70 L-300,92 Q-318,0 -300,-92Z" fill="${WHITE}" ${S()} />
+  <path d="M-205,-88 L130,-74 L130,74 L-205,88Z" fill="${band}" />
+  <path d="M-300,42 L230,34 L230,70 L-300,92Z" fill="url(#ht)" opacity=".35" />
+  <path d="M-338,-98 L-300,-92 L-300,92 L-338,98Z" fill="#E9E2D3" ${S(5)} />
+  <path d="M-330,-70 L-308,-70 M-330,-35 L-308,-35 M-330,0 L-308,0 M-330,35 L-308,35 M-330,70 L-308,70" ${S(3)} />
+  <path d="M230,-70 L270,-34 L270,34 L230,70Z" fill="${WHITE}" ${S()} />
+  <rect x="268" y="-44" width="76" height="88" rx="10" fill="${RED}" ${S()} />
+  <path d="M286,-44 L286,44 M306,-44 L306,44 M326,-44 L326,44" ${S(3)} opacity=".6" />
+  <path d="M-300,-92 L230,-70 L230,70 L-300,92 Q-318,0 -300,-92Z" fill="none" ${S()} />
+  ${label}`;
+}
+function bottle(withLabel = true) {
+  return `
+  <path d="M60,-118 L95,-150 L200,-255 L168,-287 L58,-178 L28,-130Z" fill="${WHITE}" ${S()} />
+  <g transform="translate(192,-276) rotate(45)"><rect x="-32" y="-48" width="64" height="56" rx="10" fill="${RED}" ${S()} /></g>
+  <path d="M-125,-50 C-125,-160 125,-160 125,-50 L125,205 Q125,255 75,255 L-75,255 Q-125,255 -125,205Z" fill="${WHITE}" ${S()} />
+  <path d="M50,-128 C112,-105 125,-70 125,-40 L125,205 Q125,255 75,255 L45,255Z" fill="url(#ht)" opacity=".35" />
+  <path d="M-88,-60 C-90,-100 -60,-120 -30,-122" fill="none" stroke="${MINT}" stroke-width="10" stroke-linecap="round" />
+  ${withLabel ? `<rect x="-98" y="18" width="196" height="128" rx="14" fill="${MINT}" ${S(5)} />
+  ${T("Odol", 0, 106, "hb", 78, WHITE)}` : `<rect x="-98" y="18" width="196" height="128" rx="14" fill="${PALE}" ${S(5)} />`}`;
+}
+const siwak = () => `
+  <rect x="-175" y="-24" width="300" height="48" rx="12" fill="${WOOD}" ${S(5)} />
+  <path d="M-140,-6 L-70,-9 M-40,9 L50,6 M70,-10 L110,-8" ${S(3)} />
+  <path d="M125,-24 L192,-40 M125,-11 L200,-16 M125,1 L204,2 M125,13 L198,20 M125,24 L188,38" ${S(5)} />
+  ${T("siwak", 0, 120, "hw", 84, INK)}`;
+const arang = () => `
+  <path d="M-130,40 L-98,-44 L-22,-64 L30,-22 L10,52 L-62,74Z" fill="${INK}" ${S(4)} />
+  <path d="M-130,40 L-98,-44 L-22,-64 L30,-22 L10,52 L-62,74Z" fill="url(#htw)" opacity=".35" />
+  <path d="M20,34 L62,-54 L134,-32 L146,42 L84,74Z" fill="#2E4C60" ${S(4)} />
+  <path d="M-60,70 L-20,30 L40,60 L10,96 L-40,100Z" fill="#284557" ${S(4)} />
+  ${T("arang", 0, 180, "hw", 84, INK)}`;
+const garam = () => `
+  <path d="M-115,-8 Q-60,-96 0,-100 Q60,-96 115,-8Z" fill="${WHITE}" ${S(5)} />
+  <path d="M-40,-60 l8,0 0,8 -8,0Z M20,-72 l8,0 0,8 -8,0Z M50,-40 l8,0 0,8 -8,0Z M-70,-30 l8,0 0,8 -8,0Z M-5,-35 l8,0 0,8 -8,0Z" fill="${INK}" />
+  <path d="M-138,-10 L138,-10 Q126,96 0,100 Q-126,96 -138,-10Z" fill="${RED}" ${S()} />
+  <path d="M-138,-10 L138,-10 Q126,96 0,100 Q-126,96 -138,-10Z" fill="url(#htw)" opacity=".3" />
+  ${T("garam", 0, 190, "hw", 84, INK)}`;
+const sirih = () => `
+  <path d="M0,130 C-40,70 -160,30 -140,-60 C-120,-130 -30,-120 0,-78 C30,-120 120,-130 140,-60 C160,30 40,70 0,130Z" fill="${MINT}" ${S()} />
+  <path d="M0,-78 L0,128 M0,-20 L-80,-60 M0,-20 L80,-60 M0,30 L-90,0 M0,30 L90,0 M0,75 L-50,50 M0,75 L50,50" ${S(4)} fill="none" />
+  <path d="M0,130 C-40,70 -160,30 -140,-60 L0,-60Z" fill="url(#ht)" opacity=".25" />
+  ${T("daun sirih", 0, 215, "hw", 84, INK)}`;
+const germany = () => {
+  const pts = [[230,0],[290,40],[280,90],[350,110],[420,80],[470,120],[480,200],[520,260],[560,330],[530,390],[600,450],[560,520],[470,560],[510,640],[560,720],[500,790],[380,770],[300,800],[200,780],[120,790],[140,700],[80,620],[30,540],[60,460],[0,380],[40,300],[30,220],[110,170],[150,110],[200,90],[190,30]];
+  const d = "M" + pts.map(([x, y]) => `${x - 300},${y - 400}`).join(" L") + "Z";
+  return `<path d="${d}" fill="${SAND}" ${S()} /><path d="${d}" fill="url(#ht)" opacity=".22" />
+  ${T("Jerman", -40, 120, "hw", 96, INK, 'opacity=".8"')}`;
+};
+const bust = (name, role, collar) => `
+  <path d="M-135,160 Q-135,45 0,45 Q135,45 135,160Z" fill="${INK}" />
+  <path d="M-135,160 Q-135,45 0,45 Q135,45 135,160Z" fill="url(#htw)" opacity=".25" />
+  <path d="M-34,48 L0,92 L34,48Z" fill="${collar}" ${S(4)} />
+  <circle cx="0" cy="-30" r="72" fill="${INK}" />
+  ${T(name, 0, 235, "hw", 72, INK)}${T(role, 0, 290, "hw", 54, RED)}`;
+const tile = (ch, bg, fg) => `<rect x="-105" y="-135" width="210" height="270" rx="12" fill="${bg}" ${S(5)} />
+  ${T(ch, 0, 78, "hb", 230, fg)}`;
+const tooth = () => `
+  <path d="M-90,-80 C-90,-132 -30,-132 0,-106 C30,-132 90,-132 90,-80 C90,-30 72,0 62,60 C54,122 30,132 22,82 C15,42 -15,42 -22,82 C-30,132 -54,122 -62,60 C-72,0 -90,-30 -90,-80Z" fill="${WHITE}" ${S()} />
+  <path d="M-58,-82 C-58,-104 -36,-108 -22,-98" fill="none" stroke="${MINT}" stroke-width="10" stroke-linecap="round" />
+  <path d="M30,-20 C60,-30 70,0 62,60 C56,100 40,110 30,90Z" fill="url(#ht)" opacity=".3" />`;
+const drop = () => `
+  <path d="M0,-115 C42,-52 82,-10 82,40 C82,92 42,122 0,122 C-42,122 -82,92 -82,40 C-82,-10 -42,-52 0,-115Z" fill="${GOLD}" ${S()} />
+  <path d="M-40,30 C-40,0 -24,-24 -10,-40" fill="none" stroke="${WHITE}" stroke-width="12" stroke-linecap="round" />
+  <path d="M30,0 C70,20 70,90 20,110 L0,122Z" fill="url(#ht)" opacity=".3" />`;
+const poster = (bg, fg) => `
+  <rect x="-150" y="-200" width="300" height="400" rx="6" fill="${bg}" ${S(5)} />
+  <rect x="-150" y="-200" width="300" height="400" rx="6" fill="url(#ht)" opacity=".12" />
+  ${T("ODOL", 0, -110, "hb", 92, fg)}
+  <g transform="translate(-10 70) scale(.42)">${bottle(false)}</g>`;
+const scrap = (word, w, color = INK) => `<rect x="${-w / 2}" y="-70" width="${w}" height="140" rx="6" fill="${WHITE}" ${S(4)} />${T(word, 0, 30, "hb", 92, color)}`;
+const boat = () => `
+  <path d="M-115,0 L115,0 L72,62 L-72,62Z" fill="${RED}" ${S()} />
+  <path d="M-115,0 L115,0 L72,62 L-72,62Z" fill="url(#htw)" opacity=".3" />
+  <path d="M-62,-2 L0,-118 L62,-2Z" fill="${WHITE}" ${S()} />
+  <path d="M-30,-2 L0,-60 L30,-2Z" fill="${MINT}" />`;
+const bubble = (w, h, fill, tail = 1) => `
+  <rect x="${-w / 2}" y="${-h / 2}" width="${w}" height="${h}" rx="${h / 2.6}" fill="${fill}" ${S(5)} />
+  <path d="M${tail * (w / 4)},${h / 2 - 3} L${tail * (w / 4 + 50)},${h / 2 + 60} L${tail * (w / 4 + 60)},${h / 2 - 3}Z" fill="${fill}" ${S(5)} />
+  <rect x="${-w / 2 + 6}" y="${h / 2 - 14}" width="${w - 12}" height="10" fill="${fill}" />`;
+const stamp = () => `<g filter="url(#grunge)"><rect x="-118" y="-58" width="236" height="116" rx="14" fill="none" stroke="${RED}" stroke-width="12" />
+  ${T("ODOL", 0, 30, "hb", 84, RED)}</g>`;
+const vtube = (band) => `<g transform="rotate(-90)">${tube(band)}</g>`;
+const card = (front, back) => `
+  <g class="cf"><rect x="-210" y="-270" width="420" height="540" rx="18" fill="${WHITE}" ${S(5)} />${front}</g>`;
+const waterBottle = () => `
+  <rect x="-70" y="-150" width="140" height="300" rx="40" fill="${PALE}" ${S()} />
+  <rect x="-40" y="-200" width="80" height="56" rx="10" fill="${MINT}" ${S()} />
+  <path d="M-70,-20 Q-35,-45 0,-20 T70,-20 L70,50 L-70,50Z" fill="${WHITE}" ${S(4)} />
+  <rect x="20" y="-140" width="40" height="280" rx="20" fill="url(#ht)" opacity=".25" />`;
+const pump = () => `
+  <path d="M-110,10 L-170,10 L-170,-120" fill="none" stroke="${INK}" stroke-width="22" stroke-linecap="round" />
+  <rect x="-130" y="-60" width="170" height="130" rx="18" fill="${MINT}" ${S()} />
+  <circle cx="90" cy="5" r="80" fill="${WHITE}" ${S()} />
+  <path d="M90,5 L90,-55 M90,5 L142,35 M90,5 L38,35" ${S(6)} />
+  <rect x="-160" y="80" width="320" height="34" rx="8" fill="${INK}" />`;
+const motor = () => `
+  <circle cx="-115" cy="60" r="58" fill="none" ${S(16)} />
+  <circle cx="120" cy="60" r="58" fill="none" ${S(16)} />
+  <circle cx="-115" cy="60" r="12" fill="${INK}" /><circle cx="120" cy="60" r="12" fill="${INK}" />
+  <path d="M-115,60 L-50,-14 L58,-14 L120,60" fill="none" ${S(10)} />
+  <path d="M-80,-20 L60,-20 L40,30 L-60,30Z" fill="${RED}" ${S()} />
+  <rect x="-70" y="-56" width="110" height="30" rx="12" fill="${INK}" />
+  <path d="M60,-14 L92,-84 L136,-90" fill="none" ${S(10)} />`;
+const tippex = () => `<g transform="rotate(-28)">
+  <rect x="-160" y="-42" width="270" height="84" rx="32" fill="${WHITE}" ${S()} />
+  <rect x="-120" y="-42" width="90" height="84" fill="${MINT}" ${S(5)} />
+  <path d="M110,-32 L176,-8 L176,8 L110,32Z" fill="${RED}" ${S()} />
+  <rect x="-150" y="10" width="250" height="26" rx="13" fill="url(#ht)" opacity=".25" /></g>`;
+const plane = () => `
+  <path d="M-130,10 L140,-100 L50,110 L10,40Z" fill="${WHITE}" ${S()} />
+  <path d="M10,40 L140,-100 L-20,70Z" fill="${RED}" ${S()} />`;
+const box = (c) => `<rect x="-80" y="-120" width="160" height="240" rx="10" fill="${c}" ${S(5)} />
+  <rect x="-80" y="-40" width="160" height="60" fill="${WHITE}" ${S(4)} /><rect x="-80" y="-120" width="160" height="240" rx="10" fill="url(#ht)" opacity=".15" />`;
+const flag = () => `<rect x="-60" y="-40" width="120" height="27" fill="#1b1b1b" /><rect x="-60" y="-13" width="120" height="27" fill="#DD3B2F" /><rect x="-60" y="14" width="120" height="27" fill="${GOLD}" /><rect x="-60" y="-40" width="120" height="81" fill="none" ${S(4)} />`;
+const burst = () => {
+  let s = "";
+  for (let i = 0; i < 28; i++) {
+    const a0 = (i / 28) * Math.PI * 2, a1 = ((i + .5) / 28) * Math.PI * 2;
+    s += `<path d="M0,0 L${Math.cos(a0) * 900},${Math.sin(a0) * 900} L${Math.cos(a1) * 900},${Math.sin(a1) * 900}Z" fill="${i % 2 ? RED : INK}" opacity="${i % 2 ? .85 : .75}" />`;
+  }
+  return s + `<circle r="900" fill="url(#htw)" opacity=".35" />`;
+};
+const tape = (w) => `<path d="M${-w / 2},-62 l14,12 -14,12 14,12 -14,12 14,12 -14,12 14,12 -14,12 14,12 -14,10 L${w / 2},62 l-14,-12 14,-12 -14,-12 14,-12 -14,-12 14,-12 -14,-12 14,-12 -14,-12 14,-10Z" fill="${SAND}" opacity=".92" />`;
+
+// ---------- dunia: 10 wilayah di satu papan kertas ----------
+const R = [[0,0],[1080,0],[0,1920],[1080,1920],[1080,3840],[0,3840],[0,5760],[1080,5760],[1080,7680],[0,7680]];
+const region = (i, inner) => {
+  const [x, y] = R[i], r = mulberry(i * 99 + 7);
+  const rot = (r() - .5) * 2.4;
+  return `<g transform="translate(${x} ${y})">
+    <rect x="45" y="50" width="990" height="1820" fill="${SHEET}" filter="url(#sheet)" transform="rotate(${rot} 540 960)" />
+    ${inner}</g>`;
+};
+// coretan kecil di tepi tiap wilayah (ikut bergetar)
+function doodles() {
+  const r = mulberry(42); let s = "";
+  const shapes = [
+    (c) => `<path d="M0,-26 L7,-7 L26,0 L7,7 L0,26 L-7,7 L-26,0 L-7,-7Z" fill="${c}" />`,
+    (c) => `<path d="M-40,0 Q-25,-22 -10,0 T20,0 T50,0" fill="none" stroke="${c}" stroke-width="7" stroke-linecap="round" />`,
+    (c) => `<circle r="12" fill="${c}" /><circle cx="30" cy="10" r="7" fill="${c}" /><circle cx="10" cy="32" r="5" fill="${c}" />`,
+    (c) => `<path d="M-20,-20 L20,20 M20,-20 L-20,20" stroke="${c}" stroke-width="8" stroke-linecap="round" />`
+  ];
+  const cols = [RED, MINT, INK, GOLD];
+  for (let i = 0; i < R.length; i++) {
+    for (let k = 0; k < 6; k++) {
+      const side = k % 2, x = R[i][0] + (side ? 960 + r() * 70 : 25 + r() * 70), y = R[i][1] + 120 + r() * 1680;
+      s += `<g transform="translate(${x} ${y}) rotate(${(r() * 60) | 0})"><g class="b">${shapes[(r() * 4) | 0](cols[(r() * 4) | 0])}</g></g>`;
+    }
+  }
+  return s;
+}
+
+const scenes = [
+  // 0 · Hook
+  region(0, `
+    ${P("t1pg", 540, 560, T("pasta gigi", 0, 0, "hb", 140, INK), { cut: false })}
+    ${P("t1strike", 540, 515, `<path d="M-330,8 C-150,-14 120,18 330,-6" fill="none" stroke="${RED}" stroke-width="22" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" id="t1line" filter="url(#wob)" />`, { cut: false })}
+    ${P("t1odol", 600, 360, WR("t1odol", T("odol", 0, 70, "hw", 250, RED), 520, 260), { rot: -7, cut: false })}
+    ${P("t1tube", 540, 1080, tube(MINT, `<g id="t1stk"><g filter="url(#cut)"><rect x="-150" y="-58" width="230" height="116" rx="10" fill="${WHITE}" ${S(4)} />${T("Odol®", -35, 28, "hb", 74, RED)}</g></g>`), { rot: -9, sc: 1.15 })}
+    ${P("t1tag", 790, 1420, `<path d="M-40,-150 C-30,-110 -10,-90 0,-70" fill="none" ${S(4)} />
+      <path d="M-170,-70 L130,-70 L190,0 L130,70 L-170,70Z" fill="${GOLD}" ${S(5)} /><circle cx="120" cy="0" r="12" fill="${SHEET}" ${S(4)} />
+      ${T("nama merek", -25, 24, "hw", 84, INK)}`, { rot: 9 })}
+  `),
+  // 1 · Sebelum ada odol
+  region(1, `
+    ${P("t2head", 540, 310, WR("t2head", T("dulu kala…", 0, 40, "hw", 140, INK), 640, 180), { rot: -3, cut: false })}
+    ${P("t2a", 300, 760, siwak(), { rot: -18 })}
+    ${P("t2b", 790, 720, arang(), { rot: 6 })}
+    ${P("t2c", 300, 1290, garam(), { rot: 4 })}
+    ${P("t2d", 790, 1300, sirih(), { rot: -10 })}
+    ${P("t2q", 540, 1690, T("pakai apa, ya?", 0, 0, "hw", 92, RED), { rot: -4, cut: false })}
+  `),
+  // 2 · Dresden 1892
+  region(2, `
+    ${P("t3map", 470, 690, germany(), { sc: .95, rot: -3 })}
+    ${P("t3pin", 680, 700, `<path d="M0,0 L0,-90" ${S(8)} /><circle cx="0" cy="-110" r="34" fill="${RED}" ${S(6)} /><circle cx="-10" cy="-120" r="9" fill="${WHITE}" />`, { cut: false })}
+    ${P("t3dres", 780, 790, T("Dresden", 0, 0, "hw", 96, RED), { rot: -6, cut: false })}
+    ${P("t3stamp", 800, 270, `<g filter="url(#grunge)"><circle r="130" fill="none" stroke="${RED}" stroke-width="14" /><circle r="104" fill="none" stroke="${RED}" stroke-width="5" />${T("1892", 0, 34, "hb", 104, RED)}</g>`, { rot: -14, cut: false })}
+    ${P("t3ling", 220, 1330, bust("Lingner", "pengusaha", WHITE), { sc: .9 })}
+    ${P("t3seif", 860, 1330, bust("Seifert", "kimiawan", MINT), { sc: .9 })}
+    ${P("t3bot", 540, 1420, bottle(false), { sc: .78, rot: 4 })}
+    ${P("t3lab", 540 + 0, 1420 + 64, `<rect x="-98" y="-64" width="196" height="128" rx="14" fill="${MINT}" ${S(5)} />${T("Odol", 0, 26, "hb", 78, WHITE)}`, { sc: .78 * 1.12, rot: 4 })}
+    ${P("t3kumur", 540, 1790, T("obat kumur", 0, 0, "hw", 84, INK), { rot: -2, cut: false })}
+  `),
+  // 3 · Arti nama
+  region(3, `
+    ${P("t4o1", 180, 860, tile("O", INK, WHITE), { rot: -5 })}
+    ${P("t4d", 420, 840, tile("D", RED, WHITE), { rot: 4 })}
+    ${P("t4o2", 660, 870, tile("O", MINT, WHITE), { rot: -3 })}
+    ${P("t4l", 900, 845, tile("L", SAND, INK), { rot: 6 })}
+    ${P("t4tooth", 820, 520, tooth(), { rot: 8, sc: 1.1 })}
+    ${P("t4odous", 400, 830, T("odous", 0, 0, "hb", 130, INK), { cut: false })}
+    ${P("t4g", 400, 930, T("gigi · Yunani", 0, 0, "hw", 76, RED), { cut: false, rot: -2 })}
+    ${P("t4plus", 540, 1060, `<path d="M-50,0 L50,0 M0,-50 L0,50" stroke="${RED}" stroke-width="26" stroke-linecap="round" />`, { cut: false })}
+    ${P("t4drop", 190, 1330, drop(), { rot: -8 })}
+    ${P("t4oleum", 680, 1580, T("oleum", 0, 0, "hb", 130, INK), { cut: false })}
+    ${P("t4m", 680, 1680, T("minyak · Latin", 0, 0, "hw", 76, RED), { cut: false, rot: 2 })}
+  `),
+  // 4 · Botol unik
+  region(4, `
+    ${P("t5p1", 210, 1460, poster(RED, WHITE), { rot: -12, sc: .82 })}
+    ${P("t5p2", 870, 1480, poster(MINT, WHITE), { rot: 10, sc: .82 })}
+    ${P("t5p3", 200, 470, poster(GOLD, INK), { rot: 8, sc: .74 })}
+    ${P("t5p4", 545, 1650, poster(INK, WHITE), { rot: -4, sc: .8 })}
+    ${P("t5p5", 160, 1050, poster(WHITE, RED), { rot: -9, sc: .7 })}
+    ${P("t5p6", 860, 1050, poster(SAND, INK), { rot: 14, sc: .7 })}
+    ${P("t5bot", 520, 900, bottle(true), { sc: 1.55, rot: -3 })}
+    ${P("t5arrow", 0, 0, `<path d="M930,300 C980,420 900,520 800,560" fill="none" stroke="${RED}" stroke-width="14" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" id="t5line" /><path d="M800,560 l40,-6 M800,560 l18,-36" stroke="${RED}" stroke-width="14" stroke-linecap="round" id="t5head" />`, { cut: false })}
+    ${P("t5miring", 820, 240, WR("t5miring", T("miring!", 0, 30, "hw", 120, RED), 380, 170), { rot: 6, cut: false })}
+    ${P("t5tube", 540, 920, tube(MINT, `<g filter="url(#cut)"><rect x="-150" y="-58" width="230" height="116" rx="10" fill="${WHITE}" ${S(4)} />${T("Odol", -35, 28, "hb", 78, RED)}</g>`), { rot: -14, sc: 1.2 })}
+    ${P("t5pasta", 540, 1200, T("+ pasta gigi", 0, 0, "hw", 100, INK), { rot: -3, cut: false })}
+  `),
+  // 5 · Ke Hindia Belanda
+  region(5, `
+    <g filter="url(#sheet)"><rect x="80" y="110" width="920" height="1700" rx="20" fill="${PALE}" /></g>
+    <rect x="80" y="110" width="920" height="1700" rx="20" fill="url(#ht)" opacity=".12" />
+    ${P("t6eu", 330, 330, `<path d="M-200,-80 L-120,-150 L-20,-130 L60,-180 L170,-120 L210,-20 L150,60 L180,140 L60,170 L-40,120 L-120,160 L-190,90 L-230,10Z" fill="${SAND}" ${S()} />${T("Eropa", 0, 30, "hw", 96, INK)}`, { rot: -3 })}
+    ${P("t6id", 610, 1560, `<path d="M-330,-120 L-240,-60 L-160,40 L-200,60 L-290,-40 L-350,-100Z" fill="${SAND}" ${S(5)} />
+      <path d="M-160,120 L60,130 L120,160 L-150,150Z" fill="${SAND}" ${S(5)} />
+      <path d="M-40,-160 L90,-190 L160,-120 L120,0 L20,20 L-50,-60Z" fill="${SAND}" ${S(5)} />
+      <path d="M220,-120 L250,-60 L230,0 L270,40 L210,30 L190,-60Z" fill="${SAND}" ${S(5)} />
+      ${T("Hindia Belanda", -40, 270, "hw", 88, INK)}`, { rot: 2 })}
+    <defs><mask id="routeMask" maskUnits="userSpaceOnUse" x="0" y="0" width="1080" height="1920"><path id="routeM" d="M380,480 C760,700 160,960 470,1200 S680,1380 560,1500" fill="none" stroke="#fff" stroke-width="40" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" /></mask></defs>
+    <path id="route" d="M380,480 C760,700 160,960 470,1200 S680,1380 560,1500" fill="none" stroke="${RED}" stroke-width="10" stroke-dasharray="26 18" stroke-linecap="round" mask="url(#routeMask)" />
+    <g id="shipPos" transform="translate(380 480)">${P("t6ship", 0, 0, boat(), { sc: .9 })}</g>
+    ${P("t6tand", 330, 880, scrap("tandpasta", 520), { rot: -7 })}
+    ${P("t6zahn", 740, 1060, scrap("zahnpasta", 520), { rot: 6 })}
+    ${P("t6huh", 860, 800, T("?!", 0, 0, "hb", 150, RED), { rot: 10, cut: false })}
+    ${P("t6odol", 540, 960, `${bubble(560, 270, WHITE, 1)}${T("odol!", 0, 50, "hb", 170, RED)}`, { rot: -4 })}
+  `),
+  // 6 · Merek generik
+  region(6, `
+    ${P("t7tape", 540, 330, `${tape(760)}${T("merek generik", 0, 30, "hb", 96, INK)}`, { rot: -3 })}
+    ${[MINT, RED, INK, GOLD, PALE, SAND].map((c, k) => P("t7t" + k, [230, 540, 850][k % 3], k < 3 ? 800 : 1340, vtube(c), { sc: .62, rot: [-6, 3, -2, 5, -4, 2][k] })).join("")}
+    ${[0, 1, 2, 3, 4, 5].map((k) => P("t7s" + k, [230, 540, 850][k % 3], (k < 3 ? 800 : 1340) + 20, stamp(), { rot: [-14, 9, -6, 12, -10, 7][k], sc: .95, cut: false })).join("")}
+    ${P("t7eq", 540, 1730, `<rect x="-420" y="-80" width="840" height="150" rx="10" fill="${WHITE}" ${S(4)} />${T("merek → nama barang", 0, 22, "hb", 76, INK)}`, { rot: 2 })}
+  `),
+  // 7 · Bukan cuma odol
+  region(7, (() => {
+    const items = [
+      [290, 650, waterBottle(), "air mineral", "Aqua", MINT],
+      [790, 650, pump(), "pompa air", "Sanyo", RED],
+      [290, 1310, motor(), "motor", "Honda", INK],
+      [790, 1310, tippex(), "cairan koreksi", "Tipp-Ex", GOLD]];
+    return items.map(([x, y, ic, lab, br, c], k) =>
+      P("t8c" + k, x, y, `
+        <g id="t8f${k}"><rect x="-210" y="-270" width="420" height="540" rx="18" fill="${WHITE}" ${S(5)} />
+          <g transform="translate(0 -40)">${ic}</g>${T(lab, 0, 210, "hw", 72, INK)}</g>
+        <g id="t8b${k}"><rect x="-210" y="-270" width="420" height="540" rx="18" fill="${c}" ${S(5)} />
+          <rect x="-210" y="-270" width="420" height="540" rx="18" fill="url(#htw)" opacity=".2" />
+          ${T("jadi", 0, -80, "hw", 72, c === INK ? WHITE : INK)}${T(br, 0, 60, "hb", br.length > 5 ? 96 : 116, c === GOLD ? INK : WHITE)}</g>`,
+        { rot: [-4, 3, 2, -5][k] })).join("");
+  })()),
+  // 8 · Hari ini + kamus
+  region(8, `
+    <g transform="translate(540 1440)"><g id="t9burst">${burst()}</g></g>
+    ${P("t9shelf", 540, 720, `<rect x="-470" y="0" width="940" height="44" fill="${WOOD}" ${S(5)} /><rect x="-470" y="0" width="940" height="44" fill="url(#ht)" opacity=".25" />`, { cut: false })}
+    ${P("t9p1", 180, 600, box(RED), { rot: -2 })}
+    ${P("t9p2", 380, 560, vtube(MINT), { sc: .48, rot: 2 })}
+    ${P("t9gap", 610, 600, `<rect x="-90" y="-120" width="180" height="240" rx="12" fill="none" stroke="${RED}" stroke-width="7" stroke-dasharray="18 14" />${T("?", 0, 50, "hb", 150, RED)}`, { cut: false })}
+    ${P("t9p3", 850, 600, box(INK), { rot: 3 })}
+    ${P("t9mana", 610, 330, T("Odol, di mana?", 0, 0, "hw", 92, INK), { rot: -3, cut: false })}
+    ${P("t9de", 330, 1030, `<g transform="scale(.55)">${bottle(true)}</g>`, { rot: 5 })}
+    ${P("t9tag", 720, 1010, `<rect x="-230" y="-80" width="460" height="160" rx="12" fill="${WHITE}" ${S(4)} /><g transform="translate(-150 0) scale(.7)">${flag()}</g>${T("masih dijual", 70, -8, "hw", 60, INK)}${T("di Jerman", 70, 52, "hw", 60, INK)}`, { rot: -4 })}
+    ${P("t9dict", 540, 1460, `
+      <rect x="-430" y="-330" width="860" height="660" rx="6" fill="${WHITE}" />
+      ${T("KAMUS", 0, -250, "hb", 44, INK, 'letter-spacing="8" opacity=".55"')}
+      ${[-180, -140, -100, 150, 190, 230, 270].map((y, k) => `<rect x="-360" y="${y}" width="${[700, 560, 640, 690, 520, 610, 400][k]}" height="16" rx="8" fill="#DAD2C1" />`).join("")}
+      <rect id="t9hl" x="-370" y="-60" width="740" height="150" rx="10" fill="${MINT}" opacity=".45" />
+    `, { rot: -2 })}
+    ${P("t9e1", 330, 1470, WR("t9e1", T("odol", 0, 40, "hb", 120, INK), 300, 160), { cut: false, rot: -2 })}
+    ${P("t9e2", 500, 1468, T("n", 0, 30, "hw", 72, RED), { cut: false })}
+    ${P("t9e3", 720, 1470, WR("t9e3", T("pasta gigi", 0, 26, "hm", 80, INK), 420, 140), { cut: false, rot: -2 })}
+  `),
+  // 9 · Ajakan
+  region(9, `
+    ${P("t10a", 270, 520, `${bubble(330, 150, WHITE, -1)}${T("Aqua!", 0, 26, "hw", 84, INK)}`, { rot: -6 })}
+    ${P("t10b", 800, 420, `${bubble(330, 150, WHITE, 1)}${T("Rinso?", 0, 26, "hw", 84, INK)}`, { rot: 5 })}
+    ${P("t10c", 720, 760, `${bubble(390, 150, WHITE, 1)}${T("Indomie!", 0, 26, "hw", 84, INK)}`, { rot: -3 })}
+    ${P("t10big", 500, 1080, `${bubble(860, 250, MINT, -1)}${T("Tulis di komentar", 0, 34, "hb", 96, WHITE)}`, { rot: -2 })}
+    ${P("t10plane", 830, 1380, plane(), { rot: -8 })}
+    ${P("t10kirim", 400, 1390, T("kirim ke teman", 0, 0, "hw", 96, RED), { rot: -4, cut: false })}
+    ${P("t10next", 520, 1660, `<rect x="-400" y="-150" width="800" height="300" rx="10" fill="${WHITE}" ${S(4)} />
+      ${T("episode berikutnya →", 0, -70, "hw", 64, RED)}${T("Kenapa pompa air", 0, 20, "hb", 70, INK)}${T("disebut Sanyo?", 0, 100, "hb", 70, INK)}`, { rot: 3 })}
+  `)
+];
+
+document.getElementById("cam").innerHTML = doodles() + scenes.join("");
+document.getElementById("defs").insertAdjacentHTML("beforeend", clipDefs.join(""));
+
+// lembar sobek untuk transisi
+(() => {
+  const r = mulberry(5); let top = "M0,120", bot = "";
+  for (let x = 0; x <= 1080; x += 36) top += ` L${x},${90 + r() * 70}`;
+  for (let x = 1080; x >= 0; x -= 36) bot += ` L${x},${2230 + r() * 70}`;
+  document.getElementById("wipe").innerHTML =
+    `<g filter="url(#sheet)"><path d="${top} L1080,120${bot} Z" fill="${RED}" /></g>
+     <path d="${top} L1080,120${bot} Z" fill="url(#htw)" opacity=".28" />
+     <path d="${top}" fill="none" stroke="${WHITE}" stroke-width="18" opacity=".9" />`;
+})();
+
+// butiran kertas: tile noise deterministik, digeser tiap frame
+const gctx = document.getElementById("grain").getContext("2d");
+const grainTile = (() => {
+  const c = document.createElement("canvas"); c.width = c.height = 256;
+  const x = c.getContext("2d"), img = x.createImageData(256, 256), r = mulberry(1234);
+  for (let i = 0; i < img.data.length; i += 4) {
+    const v = 200 + r() * 55; img.data[i] = v; img.data[i + 1] = v * .96; img.data[i + 2] = v * .88; img.data[i + 3] = 255;
+  }
+  x.putImageData(img, 0, 0);
+  for (let k = 0; k < 220; k++) { x.fillStyle = `rgba(90,70,40,${.15 + r() * .25})`; x.fillRect(r() * 256, r() * 256, 1 + r() * 2, 1 + r() * 2); }
+  return c;
+})();
+const grainPat = gctx.createPattern(grainTile, "repeat");
+function drawGrain(f) {
+  gctx.save(); gctx.fillStyle = grainPat;
+  gctx.translate(-(hash(f) * 256) | 0, -(hash(f + 33) * 256) | 0);
+  gctx.fillRect(0, 0, 540 + 256, 960 + 256); gctx.restore();
+}
+
+// ---------- timeline ----------
+const $ = (id) => document.getElementById(id);
+const tl = gsap.timeline({ paused: true });
+// titik pusat ditetapkan sekali di awal (mencegah lompatan smoothOrigin)
+document.querySelectorAll(".b > g[id], [id^=t8f], [id^=t8b], #t1stk").forEach((el) => gsap.set(el, { transformOrigin: "50% 50%", smoothOrigin: false }));
+gsap.set("#t9hl", { transformOrigin: "0% 50%", smoothOrigin: false });
+gsap.set("#t9burst", { svgOrigin: "0 0", smoothOrigin: false });
+const cam = { x: 540, y: 960, s: 1, r: 0, shake: 0 };
+const C = (i, dx = 0, dy = 0) => ({ x: R[i][0] + 540 + dx, y: R[i][1] + 960 + dy });
+const CAM = (t, i, dx, dy, s, d = .7, ease = "power2.inOut", r = 0) => tl.to(cam, { ...C(i, dx, dy), s, r, duration: d, ease }, t);
+const CUT = (t, i, dx, dy, s, r = 0) => tl.set(cam, { ...C(i, dx, dy), s, r }, t);
+const IN = (id, t, o = {}) => tl.fromTo($(id), { autoAlpha: 0, scale: o.from ?? 1.35, rotation: o.rot ?? (hash(t) - .5) * 24, x: o.x ?? 0, y: o.y ?? 0 },
+  { autoAlpha: 1, scale: 1, rotation: 0, x: 0, y: 0, duration: o.d ?? .25, ease: o.ease ?? "back.out(2.2)" }, t);
+const SLAM = (id, t) => { IN(id, t, { from: 2.2, rot: 0, d: .17, ease: "power3.in" }); tl.fromTo(cam, { shake: 1 }, { shake: 0, duration: .35, ease: "none", immediateRender: false }, t + .17); };
+const OUT = (id, t, o = {}) => tl.to($(id), { autoAlpha: 0, scale: o.scale ?? .6, x: o.x ?? 0, y: o.y ?? 0, rotation: o.rot ?? 0, duration: o.d ?? .25, ease: "power2.in" }, t);
+const DRAW = (id, t, d = .4) => tl.fromTo($(id), { attr: { "stroke-dashoffset": 1 } }, { attr: { "stroke-dashoffset": 0 }, duration: d, ease: "power1.inOut" }, t);
+const WRITE = (id, t, d = .5) => { const r = $("cr-" + id); tl.fromTo(r, { attr: { width: 0 } }, { attr: { width: +r.getAttribute("x") * -2 }, duration: d, ease: "none" }, t); };
+const WIPE = (t, i, dx, dy, s) => {
+  tl.fromTo($("wipe"), { y: 2000 }, { y: -170, duration: .34, ease: "power2.in" }, t);
+  CUT(t + .34, i, dx, dy, s);
+  tl.to($("wipe"), { y: -2500, duration: .42, ease: "power2.out" }, t + .42);
+};
+
+// 0 · Hook (0–7.3)
+CUT(0, 0, 0, 120, 1.12);
+IN("t1tube", 0.05, { from: 1.6 });
+CAM(0.9, 0, 0, 0, 1.0, .9);
+IN("t1pg", 1.62);
+DRAW("t1line", 2.95, .35);
+IN("t1odol", 3.4, { from: 1, rot: 0, d: .05 }); WRITE("t1odol", 3.4, .6);
+SLAM("t1stk", 5.84);
+CAM(5.6, 0, 80, 180, 1.06, .6);
+IN("t1tag", 6.22);
+
+// 1 · Sebelum ada odol (7.3–13.5)
+CAM(7.0, 1, 0, 0, 1.0, .75);
+IN("t2head", 7.48, { from: 1, rot: 0, d: .05 }); WRITE("t2head", 7.48, .7);
+IN("t2a", 9.86);
+CAM(9.7, 1, 0, -60, 1.08, 1.2);
+IN("t2b", 11.08);
+IN("t2c", 11.82);
+CAM(11.7, 1, 0, 160, 1.1, 1.0);
+IN("t2d", 12.94);
+IN("t2q", 13.2, { d: .2 });
+
+// 2 · Dresden 1892 (13.5–24.4) — sobek
+WIPE(13.4, 2, 120, -380, 1.18);
+SLAM("t3stamp", 14.2);
+IN("t3map", 13.75, { from: 1.1 });
+IN("t3pin", 15.94, { y: -200, from: 1, rot: 0, ease: "power3.in", d: .2 });
+IN("t3dres", 16.1);
+CAM(15.5, 2, 60, -230, 1.25, .8);
+CAM(17.2, 2, 0, 350, 1.12, .8);
+IN("t3ling", 17.62);
+IN("t3bot", 19.4, { from: .3 });
+IN("t3kumur", 19.94);
+IN("t3seif", 21.18);
+SLAM("t3lab", 23.0);
+CAM(22.7, 2, 0, 420, 1.3, .5);
+
+// 3 · Arti nama (24.4–31.3)
+CAM(24.3, 3, 0, 0, 1.0, .75);
+IN("t4o1", 24.95); IN("t4d", 25.1); IN("t4o2", 25.25); IN("t4l", 25.4);
+// huruf berpisah: O D ke atas, O L ke bawah
+tl.to($("t4o1"), { x: 40, y: -260, scale: .7, duration: .4, ease: "power2.inOut" }, 26.2);
+tl.to($("t4d"), { x: -40, y: -240, scale: .7, duration: .4, ease: "power2.inOut" }, 26.25);
+tl.to($("t4o2"), { x: -250, y: 470, scale: .7, duration: .4, ease: "power2.inOut" }, 26.3);
+tl.to($("t4l"), { x: -190, y: 495, scale: .7, duration: .4, ease: "power2.inOut" }, 26.35);
+IN("t4odous", 26.45);
+IN("t4tooth", 26.6);
+IN("t4g", 27.3);
+CAM(26.4, 3, 0, -170, 1.12, .6);
+IN("t4plus", 28.8, { from: 2 });
+CAM(28.8, 3, 0, 300, 1.12, .6);
+IN("t4oleum", 28.94);
+IN("t4drop", 29.4);
+IN("t4m", 29.95);
+
+// 4 · Botol unik (31.3–40.5)
+CAM(31.2, 4, 0, -60, 1.0, .75, "power2.inOut");
+IN("t5bot", 31.44, { from: .4 });
+CAM(33.1, 4, 170, -330, 1.55, .5);
+DRAW("t5line", 33.7, .4); IN("t5head", 34.05, { d: .1 });
+IN("t5miring", 34.05, { from: 1, rot: 0, d: .05 }); WRITE("t5miring", 34.05, .45);
+CAM(35.1, 4, 0, 60, 1.0, .5);
+["t5p1", "t5p2", "t5p3", "t5p4", "t5p5", "t5p6"].forEach((id, k) => SLAM(id, 36.15 + k * .22));
+OUT("t5arrow", 37.6); OUT("t5miring", 37.6);
+tl.to($("t5bot"), { scaleX: 0, scaleY: 1.1, duration: .25, ease: "power2.in" }, 38.6);
+IN("t5tube", 38.95, { from: .2 });
+IN("t5pasta", 39.4);
+CAM(38.8, 4, 0, 60, 1.12, .6);
+
+// 5 · Ke Hindia Belanda (40.5–50.4)
+CAM(40.3, 5, -60, -430, 1.18, .55);
+const ship = { p: 0 };
+tl.to(ship, { p: 1, duration: 2.0, ease: "power1.inOut" }, 40.76);
+CAM(40.9, 5, 0, 420, 1.12, 1.9, "power1.inOut");
+IN("t6tand", 43.74);
+CAM(43.4, 5, 0, 0, 1.0, .5);
+IN("t6zahn", 44.98);
+// lidah tersandung: kata bergoyang
+[0, 1, 2, 3, 4].forEach((k) => {
+  tl.to($("t6tand"), { rotation: k % 2 ? 8 : -8, x: k % 2 ? 12 : -12, duration: .17, ease: "none" }, 46.3 + k * .17);
+  tl.to($("t6zahn"), { rotation: k % 2 ? -9 : 9, x: k % 2 ? -14 : 14, duration: .17, ease: "none" }, 46.3 + k * .17);
+});
+IN("t6huh", 46.6);
+OUT("t6tand", 48.4, { x: -700, rot: -40, scale: 1 }); OUT("t6zahn", 48.45, { x: 700, rot: 40, scale: 1 }); OUT("t6huh", 48.4);
+SLAM("t6odol", 49.1);
+
+// 6 · Merek generik (50.4–56.7) — sobek
+WIPE(50.3, 6, 0, 60, 1.05);
+[0, 1, 2, 3, 4, 5].forEach((k) => IN("t7t" + k, 50.75 + k * .08));
+[51.58, 51.86, 52.2, 52.44, 52.72, 53.1].forEach((t, k) => SLAM("t7s" + k, t));
+IN("t7eq", 53.5);
+CAM(53.4, 6, 0, 200, 1.06, .6);
+CAM(55.5, 6, 0, -330, 1.18, .5);
+SLAM("t7tape", 55.82);
+
+// 7 · Bukan cuma odol (56.7–64.9)
+const flip = (k, t) => {
+  tl.set($("t8b" + k), { scaleX: 0 }, 0);
+  tl.to($("t8f" + k), { scaleX: 0, duration: .17, ease: "power1.in" }, t);
+  tl.to($("t8b" + k), { scaleX: 1, duration: .17, ease: "power1.out" }, t + .17);
+};
+CAM(56.6, 7, -150, -250, 1.2, .6);
+IN("t8c0", 56.88); flip(0, 58.05);
+CAM(59.1, 7, 150, -250, 1.2, .45);
+IN("t8c1", 59.38); flip(1, 60.05);
+CAM(60.85, 7, -150, 330, 1.2, .45);
+IN("t8c2", 61.14); flip(2, 61.65);
+CAM(62.5, 7, 150, 330, 1.2, .45);
+IN("t8c3", 62.78); flip(3, 63.5);
+CAM(64.0, 7, 0, 0, 1.0, .5);
+
+// 8 · Hari ini + kamus (64.9–74.8)
+CAM(64.7, 8, 0, -270, 1.1, .6);
+IN("t9shelf", 65.0, { from: 1.05, rot: 0 });
+IN("t9p1", 65.1); IN("t9p2", 65.2); IN("t9p3", 65.3);
+IN("t9gap", 66.4, { from: 1.6 });
+IN("t9mana", 66.9);
+CAM(67.9, 8, 0, -40, 1.05, .6);
+IN("t9de", 68.48);
+IN("t9tag", 69.14);
+CAM(70.6, 8, 0, 420, 1.15, .6);
+tl.fromTo($("t9burst"), { autoAlpha: 0, scale: .3 }, { autoAlpha: 1, scale: 1, duration: .3, ease: "back.out(1.6)" }, 71.25);
+tl.fromTo($("t9burst"), { rotation: 0 }, { rotation: 40, duration: 12, ease: "none", immediateRender: false }, 71.25);
+SLAM("t9dict", 71.42);
+tl.fromTo($("t9hl"), { scaleX: 0 }, { scaleX: 1, duration: .4, ease: "power1.inOut" }, 72.3);
+IN("t9e1", 72.54, { from: 1, rot: 0, d: .05 }); WRITE("t9e1", 72.54, .45);
+IN("t9e2", 73.1, { d: .17 });
+IN("t9e3", 73.48, { from: 1, rot: 0, d: .05 }); WRITE("t9e3", 73.48, .5);
+CAM(73.4, 8, 0, 470, 1.28, 1.2);
+
+// 9 · Ajakan (74.8–83.4)
+CAM(74.6, 9, 0, -120, 1.05, .7);
+IN("t10a", 75.78); IN("t10b", 76.16); IN("t10c", 76.84);
+CAM(77.6, 9, 0, 150, 1.0, .6);
+SLAM("t10big", 77.98);
+IN("t10plane", 79.16, { x: -300, y: 200 });
+IN("t10kirim", 79.4);
+tl.to($("t10plane"), { x: 30, y: -24, duration: .5, ease: "sine.inOut", yoyo: true, repeat: 3 }, 79.6);
+SLAM("t10next", 80.5);
+CAM(80.3, 9, 0, 320, 1.08, .8);
+tl.set({}, {}, DUR);
+
+// ---------- render per frame ----------
+const camG = $("cam"), boils = Array.from(document.querySelectorAll(".b"));
+const shipPos = $("shipPos"), route = $("route"), routeM = $("routeM");
+const L = route.getTotalLength();
+let lastF = -1;
+function renderAt(t) {
+  const f = Math.floor(t * FPS);
+  if (f === lastF) return;
+  lastF = f;
+  const q = f / FPS;
+  tl.time(Math.min(q, DUR));
+  // kamera (+ getar saat cap mendarat + napas halus)
+  const sh = cam.shake * 10;
+  const bx = Math.sin(q * 0.9) * 6 + Math.sin(f * 2.7) * sh, by = Math.cos(q * 0.7) * 6 + Math.cos(f * 3.1) * sh;
+  const br = cam.r + Math.sin(q * 0.5) * 0.25 + Math.sin(f * 1.9) * cam.shake * 0.8;
+  camG.setAttribute("transform", `translate(540 960) rotate(${br}) scale(${cam.s}) translate(${-cam.x + bx} ${-cam.y + by})`);
+  // kapal di rute
+  const pt = route.getPointAtLength(ship.p * L), pt2 = route.getPointAtLength(Math.min(L, ship.p * L + 4));
+  const ang = Math.atan2(pt2.y - pt.y, pt2.x - pt.x) * 57.3;
+  shipPos.setAttribute("transform", `translate(${pt.x} ${pt.y}) rotate(${Math.max(-25, Math.min(25, ang * .3))})`);
+  routeM.setAttribute("stroke-dashoffset", 1 - ship.p);
+  // getar stop-motion: tiap potongan bergeser sedikit tiap frame
+  for (let k = 0; k < boils.length; k++) {
+    const a = hash(f * 1.37 + k * 7.91), b = hash(f * 2.11 + k * 3.33), c = hash(f * 0.73 + k * 5.17);
+    boils[k].style.transform = `translate(${(a - .5) * 4}px,${(b - .5) * 4}px) rotate(${(c - .5) * 1.4}deg)`;
+  }
+  drawGrain(f);
+  if (DEBUG) { $("dbTime").textContent = q.toFixed(2); $("dbRange").value = q; }
+}
+
+// ---------- skala panggung ----------
+const stage = $("stage");
+function fit() {
+  const s = Math.min(innerWidth / W, innerHeight / H);
+  stage.style.transform = `scale(${s}) translate(-50%,-50%)`;
+}
+addEventListener("resize", fit); fit();
+
+// ---------- jam: audio sebagai sumber waktu ----------
+const vo = $("vo");
+let playing = false, tailStart = null, tailBase = 0;
+function clock() {
+  if (!vo.ended) return vo.currentTime;
+  if (tailStart === null) { tailStart = gsap.ticker.time; tailBase = vo.duration || 82.2; }
+  return tailBase + (gsap.ticker.time - tailStart);
+}
+function start(from = 0) {
+  tailStart = null; vo.currentTime = from;
+  return vo.play().then(() => { playing = true; }).catch(() => { playing = false; });
+}
+gsap.ticker.add(() => {
+  if (!playing) return;
+  let t = clock();
+  if (t >= DUR) { lastF = -1; start(0); t = 0; }
+  renderAt(t);
+});
+const kick = () => { if (!playing && !CLEAN) start(vo.currentTime >= DUR - .1 ? 0 : vo.currentTime); };
+addEventListener("pointerdown", kick);
+addEventListener("keydown", (e) => {
+  if (e.code === "Space") { e.preventDefault(); if (playing) { vo.pause(); playing = false; } else kick(); }
+  if (e.key === "r" || e.key === "R") { lastF = -1; start(0); }
+});
+
+// export frame-by-frame
+window.__seek = (t) => { lastF = -1; renderAt(t); };
+window.__DUR = DUR; window.__FPS = FPS;
+
+if (DEBUG) {
+  $("debug").style.display = "flex";
+  $("dbRange").addEventListener("input", (e) => { vo.pause(); playing = false; vo.currentTime = Math.min(+e.target.value, 82.1); window.__seek(+e.target.value); });
+  $("dbPlay").addEventListener("click", (e) => { e.stopPropagation(); if (playing) { vo.pause(); playing = false; } else kick(); });
+}
+
+document.fonts.ready.then(() => {
+  renderAt(0);
+  window.__ready = true;
+  if (!CLEAN && !DEBUG) start(0);
+});
+})();
+</script>
+</body>
+</html>
