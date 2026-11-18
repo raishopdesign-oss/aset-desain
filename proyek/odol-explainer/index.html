@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kenapa disebut odol?</title>
+<style>
+@font-face{font-family:"DM Serif Display";src:url(fonts/DMSerifDisplay-Regular.ttf)}
+@font-face{font-family:"Caveat";src:url(fonts/Caveat-Bold.ttf);font-weight:700}
+:root{--kertas:#F2EBDD;--biru:#1D3F7A;--mint:#4FB59B;--koral:#E2503A;--putih:#FCFAF4;--tinta:#2a2418}
+html,body{margin:0;height:100%;background:#1a1712;overflow:hidden}
+#stage{position:absolute;left:50%;top:50%;width:1080px;height:1920px;overflow:hidden;transform-origin:0 0;background:var(--kertas)}
+#world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+.abs{position:absolute;left:0;top:0}
+.desk{position:absolute;left:-2800px;top:-1600px;width:9600px;height:7600px;background:url(img/kertas.jpg) 0 0/1024px 1024px repeat}
+.obj{position:absolute;left:0;top:0;transform-origin:50% 50%}
+.stk{filter:url(#stiker)}
+.serif{font-family:"DM Serif Display",serif;line-height:1;white-space:nowrap}
+.tangan{font-family:"Caveat",cursive;font-weight:700;line-height:1;white-space:nowrap}
+.huruf{display:inline-block;transform-origin:50% 80%}
+#grain{position:absolute;inset:0;pointer-events:none;background:url(img/kertas.jpg) 0 0/700px 700px;mix-blend-mode:multiply;opacity:.18}
+#vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 80% at 50% 45%,transparent 55%,rgba(60,40,10,.22))}
+#sobek{position:absolute;left:-40px;top:0;width:1160px;height:2600px;background:url(img/kertas-putih.jpg) 0 0/900px 900px;transform:translateY(2200px)}
+#sobek::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 62px,rgba(29,63,122,.07) 62px 64px)}
+#debug{position:fixed;left:10px;right:10px;bottom:10px;display:none;gap:10px;align-items:center;color:#fff;font:14px monospace}
+#debug input{flex:1}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="world">
+    <div class="desk"></div>
+    <div id="mapwrap" class="abs"></div>
+    <div id="layer" class="abs"></div>
+  </div>
+  <div id="grain"></div>
+  <div id="vignette"></div>
+  <div id="sobek"></div>
+</div>
+<div id="debug"><span id="dt">0.00</span><input id="scrub" type="range" min="0" max="40" step="0.01" value="0"></div>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <filter id="stiker" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB">
+      <feMorphology in="SourceAlpha" operator="dilate" radius="9" result="d"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="7" result="n"/>
+      <feDisplacementMap in="d" in2="n" scale="10" xChannelSelector="R" yChannelSelector="G" result="dd"/>
+      <feFlood flood-color="#FCFAF4"/><feComposite in2="dd" operator="in" result="putih"/>
+      <feGaussianBlur in="dd" stdDeviation="5"/><feOffset dx="7" dy="11" result="bo"/>
+      <feFlood flood-color="#3a2a10" flood-opacity=".30"/><feComposite in2="bo" operator="in" result="bayang"/>
+      <feMerge><feMergeNode in="bayang"/><feMergeNode in="putih"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <pattern id="htBiru" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(30)"><circle cx="7" cy="7" r="3.4" fill="#1D3F7A"/></pattern>
+    <pattern id="htTinta" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(30)"><circle cx="6" cy="6" r="2.6" fill="#2a2418"/></pattern>
+    <pattern id="htLaut" width="22" height="22" patternUnits="userSpaceOnUse" patternTransform="rotate(30)"><circle cx="11" cy="11" r="3.2" fill="#1D3F7A" opacity=".16"/></pattern>
+  </defs>
+</svg>
+
+<script src="lib/gsap.min.js"></script>
+<script src="lib/mapdata.js"></script>
+<script>
+/* ===== Kenapa pasta gigi disebut odol? — explainer kolase kertas 9:16 =====
+   Semua visual = fungsi dari waktu timeline (deterministik). Stop motion: waktu
+   dikuantisasi ke 12 fps. ?debug=1 → panel scrub, ?clean=1 → tanpa autoplay. */
+const FPS_STOP = 12, DUR = 40;
+const C = {biru:"#1D3F7A", mint:"#4FB59B", koral:"#E2503A", putih:"#FCFAF4", tinta:"#2a2418", krem:"#F2EBDD"};
+const $ = s => document.querySelector(s);
+const layer = $("#layer"), world = $("#world"), stage = $("#stage");
+const hash = n => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+const q = t => Math.floor(t * FPS_STOP + 1e-6) / FPS_STOP;
+
+/* ---------- helper membuat objek ---------- */
+function obj(html, x, y, w, h, cls = "") {
+  const el = document.createElement("div");
+  el.className = "obj " + cls;
+  el.style.width = w + "px"; el.style.height = h + "px";
+  el.innerHTML = html;
+  layer.appendChild(el);
+  gsap.set(el, {x: x - w / 2, y: y - h / 2});
+  el._boil = true;
+  return el;
+}
+const svg = (w, h, inner) => `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" overflow="visible">${inner}</svg>`;
+
+/* ---------- PETA: Eropa → Nusantara dari data geografis ---------- */
+const M = window.MAP;
+(function buildMap() {
+  // tepi kertas laut yang sobek (deterministik)
+  const pad = 70, W = M.W + pad * 2, H = M.H + pad * 2, pts = [];
+  const edge = (x0, y0, x1, y1, n, k) => { for (let i = 0; i < n; i++) { const t = i / n; pts.push([x0 + (x1 - x0) * t + (hash(k + i) - .5) * 26 * (y0 === y1 ? 0 : 1), y0 + (y1 - y0) * t + (hash(k + i + 999) - .5) * 26 * (x0 === x1 ? 0 : 1)]); } };
+  edge(0, 0, W, 0, 90, 1); edge(W, 0, W, H, 60, 2); edge(W, H, 0, H, 90, 3); edge(0, H, 0, 0, 60, 4);
+  const poly = pts.map(p => p.map(v => v.toFixed(1)).join(",")).join(" ");
+  const negara = M.countries.map(c => {
+    const id = c.id === "276" ? ' id="jerman"' : c.id === "360" ? ' id="indo"' : "";
+    return `<path${id} d="${c.d}"/>`;
+  }).join("");
+  const r = M.route.map(p => p.join(",")).join(" ");
+  document.getElementById("mapwrap").innerHTML = `
+  <svg width="${W}" height="${H}" viewBox="${-pad} ${-pad} ${W} ${H}" style="position:absolute;left:${-pad}px;top:${-pad}px;overflow:visible">
+    <g transform="translate(${-pad},${-pad})">
+      <polygon points="${poly}" fill="#3a2a10" opacity=".22" transform="translate(9,14)"/>
+      <polygon points="${poly}" fill="#C9D9DE"/>
+      <polygon points="${poly}" fill="url(#htLaut)"/>
+    </g>
+    <g fill="#3a2a10" opacity=".20" transform="translate(5,8)">${negara}</g>
+    <g id="darat" fill="${C.putih}" stroke="${C.biru}" stroke-width="2.2" stroke-linejoin="round">${negara}</g>
+    <mask id="rmask" maskUnits="userSpaceOnUse"><polyline id="rjalan" points="${r}" fill="none" stroke="#fff" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/></mask>
+    <polyline points="${r}" fill="none" stroke="${C.koral}" stroke-width="9" stroke-dasharray="26 18" stroke-linecap="round" stroke-linejoin="round" mask="url(#rmask)"/>
+  </svg>`;
+})();
+const jerman = document.querySelectorAll("#jerman"), indo = document.querySelectorAll("#indo");
+const rjalan = $("#rjalan");
+const rLen = rjalan.getTotalLength();
+rjalan.style.strokeDasharray = rLen; rjalan.style.strokeDashoffset = rLen;
+// panjang kumulatif rute untuk kapal
+const R = M.route, seg = [0];
+for (let i = 1; i < R.length; i++) seg.push(seg[i - 1] + Math.hypot(R[i][0] - R[i - 1][0], R[i][1] - R[i - 1][1]));
+function along(p) {
+  const d = Math.max(0, Math.min(1, p)) * seg[seg.length - 1];
+  let i = 1; while (i < seg.length - 1 && seg[i] < d) i++;
+  const t = (d - seg[i - 1]) / (seg[i] - seg[i - 1] || 1);
+  const x = R[i - 1][0] + (R[i][0] - R[i - 1][0]) * t, y = R[i - 1][1] + (R[i][1] - R[i - 1][1]) * t;
+  return {x, y, a: Math.atan2(R[i][1] - R[i - 1][1], R[i][0] - R[i - 1][0])};
+}
+
+/* ---------- ZONA 1: tube "PASTA GIGI" + huruf ODOL? ---------- */
+const TZ = {x: -1250, y: 1050};
+const tube = obj(svg(470, 860, `
+  <path d="M60 40 L410 40 L398 92 L440 640 Q446 700 400 730 L330 760 L140 760 L70 730 Q24 700 30 640 L72 92 Z" fill="${C.putih}"/>
+  <path d="M60 40 L410 40 L404 70 L66 70 Z" fill="${C.mint}"/>
+  ${[0,1,2,3,4,5,6,7,8,9].map(i=>`<line x1="${78+i*35}" y1="40" x2="${78+i*35}" y2="70" stroke="${C.biru}" stroke-width="3"/>`).join("")}
+  <path d="M60 300 L430 300 L440 520 L32 520 Z" fill="${C.mint}"/>
+  <path d="M330 92 L398 92 L440 640 Q446 700 400 730 L340 760 Z" fill="url(#htBiru)" opacity=".35"/>
+  <text x="236" y="438" text-anchor="middle" font-family="DM Serif Display" font-size="70" fill="${C.biru}">PASTA GIGI</text>
+  <rect x="150" y="760" width="170" height="90" rx="10" fill="${C.koral}"/>
+  <rect x="150" y="760" width="170" height="90" rx="10" fill="url(#htTinta)" opacity=".18"/>
+  <path d="M140 760 L330 760" stroke="${C.biru}" stroke-width="4"/>`), TZ.x, TZ.y + 260, 470, 860, "stk");
+gsap.set(tube, {rotation: -8});
+const odol = document.createElement("div");
+odol.className = "obj serif"; odol.style.cssText = "font-size:250px;color:" + C.biru + ";width:900px;text-align:center";
+odol.innerHTML = "ODOL?".split("").map((c, i) => `<span class="huruf" style="${c === "?" ? "color:" + C.koral : ""}">${c}</span>`).join("");
+layer.appendChild(odol); gsap.set(odol, {x: TZ.x - 450, y: TZ.y - 520});
+const huruf = odol.querySelectorAll(".huruf"); huruf.forEach(h => h._boil = true);
+const panah = obj(svg(300, 300, `<path id="pnh" d="M40 20 C 150 40, 230 110, 220 240" fill="none" stroke="${C.koral}" stroke-width="12" stroke-linecap="round"/><path id="pnh2" d="M180 205 L222 250 L258 196" fill="none" stroke="${C.koral}" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>`), TZ.x + 330, TZ.y - 70, 300, 300);
+const pnh = panah.querySelectorAll("path");
+
+/* ---------- ZONA 2: Eropa, pin, 1892, Lingner, botol ---------- */
+const D = {x: M.dresden[0], y: M.dresden[1]};
+const pin = obj(svg(90, 230, `<line x1="45" y1="70" x2="45" y2="225" stroke="${C.biru}" stroke-width="7" stroke-linecap="round"/><circle cx="45" cy="45" r="40" fill="${C.koral}"/><circle cx="45" cy="45" r="40" fill="url(#htTinta)" opacity=".2"/><circle cx="32" cy="32" r="11" fill="#fff" opacity=".7"/>`), D.x, D.y - 110, 90, 230);
+const lblJerman = obj(`<div class="tangan" style="font-size:66px;color:${C.biru}">Jerman</div>`, D.x + 170, D.y + 60, 220, 70);
+const tahun = document.createElement("div");
+tahun.className = "obj serif"; tahun.style.cssText = `font-size:230px;color:${C.biru};width:700px;text-align:center`;
+tahun.innerHTML = "1892".split("").map(c => `<span class="huruf">${c}</span>`).join("");
+layer.appendChild(tahun); gsap.set(tahun, {x: D.x - 350, y: D.y + 250});
+const digit = tahun.querySelectorAll(".huruf"); digit.forEach(h => h._boil = true);
+const lingkar = obj(svg(640, 330, `<path d="M330 30 C 520 20, 620 90, 610 170 C 600 270, 420 312, 290 305 C 130 298, 30 250, 32 165 C 35 80, 170 28, 360 40 C 430 45, 480 60, 520 80" fill="none" stroke="${C.mint}" stroke-width="13" stroke-linecap="round"/>`), D.x, D.y + 368, 640, 330);
+const lingkarP = lingkar.querySelector("path");
+// foto Lingner: pakai img/lingner.jpg bila ada (unduh sendiri, domain publik), selain itu siluet
+const foto = obj(`<div style="width:290px;height:370px;background:${C.krem};overflow:hidden;position:relative">
+   <svg class="sil" width="290" height="370" style="position:absolute;inset:0"><rect width="290" height="370" fill="#E6DCC6"/><rect width="290" height="370" fill="url(#htBiru)" opacity=".12"/>
+     <path d="M145 70 C 200 70, 215 120, 210 160 C 206 200, 182 228, 145 230 C 108 228, 84 200, 80 160 C 75 120, 90 70, 145 70Z" fill="${C.biru}"/>
+     <path d="M112 196 C 130 186, 160 186, 178 196 C 165 206, 125 206, 112 196Z" fill="#E6DCC6" opacity=".55"/>
+     <path d="M40 370 C 50 285, 95 250, 145 250 C 195 250, 240 285, 250 370Z" fill="${C.biru}"/>
+     <path d="M128 252 L145 300 L162 252Z" fill="#E6DCC6"/></svg>
+   <img src="img/lingner.jpg" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.1) sepia(.25)" onerror="this.remove()"></div>`, D.x - 220, D.y - 230, 290, 370, "stk");
+gsap.set(foto, {rotation: -6});
+const lblNama = obj(`<div class="tangan" style="font-size:58px;color:${C.biru};text-align:center">Karl August<br>Lingner</div>`, D.x - 230, D.y + 40, 300, 120);
+const botolSVG = (s = 1) => svg(200 * s, 420 * s, `<g transform="scale(${s})">
+  <path d="M60 140 Q60 110 90 106 L96 60 L70 26 L92 12 L122 52 L130 106 Q160 112 160 140 L160 380 Q160 410 130 410 L90 410 Q60 410 60 380 Z" fill="#F7F4EC"/>
+  <path d="M70 26 L92 12 L104 28 L82 42Z" fill="${C.biru}"/>
+  <path d="M130 140 L160 140 L160 380 Q160 410 130 410Z" fill="url(#htBiru)" opacity=".3"/>
+  <rect x="60" y="210" width="100" height="120" fill="${C.biru}"/>
+  <text x="110" y="290" text-anchor="middle" font-family="DM Serif Display" font-size="42" fill="${C.putih}">Odol</text></g>`);
+const botol = obj(botolSVG(1), D.x + 210, D.y - 280, 200, 420, "stk");
+gsap.set(botol, {rotation: 7});
+const tag = obj(`<div style="background:${C.putih};padding:10px 22px;border-radius:8px;transform:rotate(-5deg)"><span class="tangan" style="font-size:56px;color:${C.koral}">obat kumur</span></div>`, D.x + 230, D.y - 10, 300, 90, "stk");
+
+/* ---------- ZONA 3: kapal kertas + stiker "odol" di Nusantara ---------- */
+const kapal = obj(svg(320, 330, `
+  <g id="kbotol" transform="translate(110,10) scale(.48)">${`<path d="M60 140 Q60 110 90 106 L96 60 L70 26 L92 12 L122 52 L130 106 Q160 112 160 140 L160 380 Q160 410 130 410 L90 410 Q60 410 60 380 Z" fill="#F7F4EC" stroke="${C.biru}" stroke-width="5"/><rect x="60" y="210" width="100" height="120" fill="${C.biru}"/><text x="110" y="290" text-anchor="middle" font-family="DM Serif Display" font-size="42" fill="${C.putih}">Odol</text>`}</g>
+  <path d="M10 210 L310 210 L250 300 L70 300 Z" fill="${C.biru}"/><path d="M10 210 L310 210 L300 226 L20 226Z" fill="${C.koral}"/>
+  <path d="M160 210 L250 300 L70 300Z" fill="url(#htTinta)" opacity=".18"/>
+  <path d="M60 210 L160 120 L260 210Z" fill="${C.biru}" opacity="0"/>`), 0, 0, 320, 330, "stk");
+const stikerPos = [[M.sumatra[0] - 60, M.sumatra[1] - 170], [M.java[0] - 120, M.java[1] + 190], [M.kalimantan[0], M.kalimantan[1] - 190], [M.sulawesi[0] + 30, M.sulawesi[1] + 170], [3450, 2620], [3760, 2130], [4010, 2470]];
+const stiker = stikerPos.map(([x, y], i) => {
+  const e = obj(`<div style="background:${C.putih};padding:6px 20px 12px;border-radius:10px"><span class="tangan" style="font-size:78px;color:${i % 2 ? C.biru : C.koral}">odol</span></div>`, x, y - 30, 190, 100, "stk");
+  gsap.set(e, {rotation: (hash(i + 40) - .5) * 24}); return e;
+});
+const lblHB = obj(`<div style="background:${C.putih};padding:14px 40px 22px;transform:rotate(-2deg)"><span class="serif" style="font-size:96px;color:${C.biru}">Hindia Belanda</span></div>`, 3420, 2830, 720, 140, "stk");
+
+/* ---------- ZONA 4: merek generik ---------- */
+const LZ = {x: 1500, y: 3950};
+const judul = obj(`<div class="serif" style="font-size:132px;color:${C.biru};text-align:center">merek generik</div>`, LZ.x, LZ.y - 640, 900, 140);
+const judulLing = obj(svg(980, 260, `<path d="M520 24 C 820 14, 960 70, 950 130 C 940 210, 700 245, 470 240 C 230 236, 30 205, 30 130 C 32 60, 260 18, 560 26 C 640 28, 700 34, 760 44" fill="none" stroke="${C.mint}" stroke-width="13" stroke-linecap="round"/>`), LZ.x, LZ.y - 635, 980, 260);
+const judulLingP = judulLing.querySelector("path");
+const ikonTube = svg(110, 170, `<path d="M15 8 L95 8 L92 20 L100 130 Q101 140 92 145 L75 152 L35 152 L18 145 Q9 140 10 130 L18 20Z" fill="${C.putih}" stroke="${C.biru}" stroke-width="5"/><path d="M14 60 L98 60 L100 100 L10 100Z" fill="${C.mint}"/><rect x="38" y="152" width="34" height="16" fill="${C.koral}"/>`);
+const ikonGalon = svg(130, 170, `<rect x="45" y="4" width="40" height="22" rx="5" fill="${C.biru}"/><path d="M30 26 L100 26 Q125 40 125 70 L125 150 Q125 166 108 166 L22 166 Q5 166 5 150 L5 70 Q5 40 30 26Z" fill="#BFE3EE" stroke="${C.biru}" stroke-width="5"/><path d="M5 95 L125 95" stroke="${C.biru}" stroke-width="4"/><path d="M5 125 L125 125" stroke="${C.biru}" stroke-width="4"/>`);
+const ikonPompa = svg(150, 170, `<rect x="10" y="60" width="95" height="90" rx="14" fill="${C.biru}"/><circle cx="57" cy="105" r="28" fill="${C.putih}"/><circle cx="57" cy="105" r="10" fill="${C.koral}"/><path d="M105 90 L140 90 L140 30 L80 30" fill="none" stroke="${C.koral}" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/><rect x="0" y="150" width="120" height="16" fill="${C.tinta}"/>`);
+function labelKartu(kata, arti, ikon, warna) {
+  return `<div style="width:860px;height:300px;background:${C.putih};display:flex;align-items:center;gap:30px;padding:0 50px;box-sizing:border-box;position:relative">
+    <div style="position:absolute;right:30px;top:30px;width:34px;height:34px;border-radius:50%;background:${C.krem};box-shadow:inset 3px 3px 0 rgba(0,0,0,.15)"></div>
+    ${ikon}<div><div class="serif" style="font-size:150px;color:${warna}">${kata}</div><div class="tangan" style="font-size:68px;color:${C.tinta};margin-top:6px">= ${arti}</div></div></div>`;
+}
+const kartu = [
+  obj(labelKartu("ODOL", "pasta gigi", ikonTube, C.mint), LZ.x, LZ.y - 280, 860, 300, "stk"),
+  obj(labelKartu("AQUA", "air mineral", ikonGalon, C.biru), LZ.x - 40, LZ.y + 80, 860, 300, "stk"),
+  obj(labelKartu("SANYO", "pompa air", ikonPompa, C.koral), LZ.x + 30, LZ.y + 440, 860, 300, "stk"),
+];
+const kartuRot = [-4, 3, -2];
+
+/* ---------- ZONA 5: tanda tanya + ajakan komentar ---------- */
+const QZ = {x: 3550, y: 3950};
+const tanya = obj(`<div class="serif" style="font-size:900px;color:${C.koral};width:600px;text-align:center">?</div>`, QZ.x, QZ.y - 120, 600, 900, "stk");
+const tanganEl = obj(svg(760, 900, `
+  <path d="M760 900 L760 560 Q640 480 520 430 L470 540 Q600 600 690 900Z" fill="${C.biru}"/>
+  <path d="M760 900 L760 560 Q700 530 640 500 L610 600 Q690 640 720 900Z" fill="url(#htTinta)" opacity=".2"/>
+  <path d="M530 420 Q470 380 400 360 Q340 345 300 330 Q280 320 290 300 Q300 285 330 292 L420 312 Q380 270 330 250 Q300 238 312 214 Q326 196 356 210 L452 262 Q440 240 420 214 Q408 190 430 184 Q448 180 462 200 L520 280 Q560 330 575 380 Z" fill="#E7B48C"/>
+  <path d="M520 430 L470 540" stroke="${C.putih}" stroke-width="16" stroke-linecap="round"/>`), QZ.x + 380, QZ.y + 520, 760, 900);
+const ajak = obj(`<div class="tangan" style="font-size:118px;color:${C.biru};text-align:center">tulis di komentar!</div>`, QZ.x, QZ.y + 520, 900, 130);
+const garisAjak = obj(svg(760, 60, `<path d="M20 30 C 200 10, 420 50, 740 22" fill="none" stroke="${C.mint}" stroke-width="12" stroke-linecap="round"/>`), QZ.x, QZ.y + 610, 760, 60);
+const garisAjakP = garisAjak.querySelector("path");
+const bubblePos = [[QZ.x - 330, QZ.y - 560, -8], [QZ.x + 330, QZ.y - 430, 7], [QZ.x - 360, QZ.y + 180, 5]];
+const bubble = bubblePos.map(([x, y, r], i) => {
+  const e = obj(svg(220, 170, `<path d="M20 10 L200 10 Q215 10 215 25 L215 110 Q215 125 200 125 L90 125 L50 165 L58 125 L20 125 Q5 125 5 110 L5 25 Q5 10 20 10Z" fill="${[C.mint, C.biru, C.koral][i]}"/><circle cx="65" cy="68" r="13" fill="${C.putih}"/><circle cx="110" cy="68" r="13" fill="${C.putih}"/><circle cx="155" cy="68" r="13" fill="${C.putih}"/>`), x, y, 220, 170, "stk");
+  gsap.set(e, {rotation: r}); return e;
+});
+
+/* ---------- KAMERA ---------- */
+const cam = {x: TZ.x + 20, y: TZ.y - 60, s: 1.2, r: 0};
+let followBoat = 0;
+function applyCam(t) {
+  let {x, y, s, r} = cam;
+  if (followBoat > 0) { const b = along(boat.p); x = x + (b.x - x) * followBoat; y = y + (b.y - y) * followBoat; }
+  const br = 1 + .008 * Math.sin(t * 1.1);                    // kamera bernapas
+  x += 6 * Math.sin(t * .7); y += 5 * Math.sin(t * .9 + 1);
+  s *= br;
+  world.style.transform = `translate(${540 - x * s}px,${960 - y * s}px) scale(${s}) rotate(${r}deg)`;
+}
+
+/* ---------- STOP MOTION: boil per elemen, 12 fps ---------- */
+const boilEls = [...document.querySelectorAll(".obj")].filter(e => e._boil).concat([...huruf], [...digit]);
+function applyBoil(t) {
+  const step = Math.floor(t * FPS_STOP);
+  boilEls.forEach((e, i) => {
+    const k = step * 13.37 + i * 7.1;
+    e.style.translate = `${(hash(k) - .5) * 3.2}px ${(hash(k + 3) - .5) * 3.2}px`;
+    e.style.rotate = `${(hash(k + 5) - .5) * 1.1}deg`;
+  });
+  const g = Math.floor(step / 2);
+  $("#grain").style.backgroundPosition = `${Math.floor(hash(g) * 700)}px ${Math.floor(hash(g + 9) * 700)}px`;
+}
+
+/* ---------- TIMELINE ---------- */
+const boat = {p: 0};
+const tl = gsap.timeline({paused: true});
+const CUES = [];               // [detik, file sfx, volume]
+const cue = (t, f, v = .5) => CUES.push([t, f, v]);
+const pop = (el, t, s = 1, r = 0) => {
+  tl.fromTo(el, {scale: 0, autoAlpha: 0, rotation: r - 12}, {scale: s * 1.18, autoAlpha: 1, rotation: r + 4, duration: .17, ease: "power2.out"}, t)
+    .to(el, {scale: s, rotation: r, duration: .25, ease: "back.out(3)"}, t + .17);
+};
+const draw = (path, t, d) => { const L = path.getTotalLength(); gsap.set(path, {strokeDasharray: L, strokeDashoffset: L}); tl.to(path, {strokeDashoffset: 0, duration: d, ease: "power1.inOut"}, t); };
+const hide = els => gsap.set(els, {autoAlpha: 0});
+
+hide([...huruf, ...digit, panah, pin, lblJerman, lingkar, foto, lblNama, botol, tag, kapal, ...stiker, lblHB, judul, judulLing, ...kartu, tanya, tanganEl, ajak, garisAjak, ...bubble]);
+gsap.set(tube, {autoAlpha: 1});
+
+// 0–3 · tube & ODOL?
+tl.to(cam, {s: 1.0, y: TZ.y - 20, duration: 2.8, ease: "power2.inOut"}, 0);
+tl.fromTo(tube, {y: "+=260", rotation: -20}, {y: "-=260", rotation: -8, duration: .5, ease: "back.out(1.6)"}, .1); cue(.1, "kertas-kresek-pendek", .45);
+huruf.forEach((h, i) => { const t = .55 + i * .32 + (i === 4 ? .12 : 0); pop(h, t, 1, (hash(i) - .5) * 14); cue(t, i === 4 ? "pop-besar" : "pop-huruf-" + (i % 4 + 1), .6); });
+pop(panah, 2.05); draw(pnh[0], 2.05, .45); draw(pnh[1], 2.4, .2);
+
+// 3–12 · Eropa, Jerman, 1892, Lingner, Odol
+tl.to(cam, {x: D.x + 60, y: D.y + 260, s: .78, r: 0, duration: .75, ease: "power3.inOut"}, 3.0); cue(2.95, "whoosh-transisi", .5);
+tl.to(jerman, {fill: C.koral, duration: .01}, 3.95); cue(3.95, "kertas-dibalik-1", .5);
+for (let k = 0; k < 3; k++) tl.to(jerman, {fillOpacity: k % 2 ? 1 : .55, duration: .01}, 4.05 + k * .17);
+pop(lblJerman, 4.3, 1, -4);
+tl.set(pin, {autoAlpha: 1}, 4.6); tl.fromTo(pin, {y: "-=520"}, {y: "+=520", duration: .42, ease: "power2.in", immediateRender: false}, 4.6)
+  .to(pin, {scaleY: .82, duration: .06}, 5.02).to(pin, {scaleY: 1, duration: .2, ease: "back.out(3)"}, 5.08); cue(4.98, "pin-ditancap", .7);
+tl.to(cam, {x: D.x + 10, y: D.y + 120, s: 1.38, duration: 1.0, ease: "power2.inOut"}, 5.3);
+tl.to(lblJerman, {autoAlpha: 0, duration: .2}, 5.6);
+digit.forEach((d, i) => pop(d, 6.1 + i * .2, 1, (hash(i + 20) - .5) * 10)); cue(6.1, "tik-angka-1892", .6);
+tl.set(lingkar, {autoAlpha: 1}, 7.0); draw(lingkarP, 7.0, .5); cue(7.0, "kertas-kresek-pendek", .3);
+tl.set(foto, {autoAlpha: 1}, 7.7); tl.fromTo(foto, {x: "-=700", rotation: -30}, {x: "+=700", rotation: -6, duration: .5, ease: "back.out(1.4)", immediateRender: false}, 7.7); cue(7.75, "kertas-dibalik-2", .5);
+pop(lblNama, 8.3, 1, -3);
+tl.to(cam, {x: D.x + 20, y: D.y - 30, s: 1.25, duration: 1.4, ease: "power1.inOut"}, 9.2);
+tl.set(botol, {autoAlpha: 1}, 9.9); tl.fromTo(botol, {y: "-=700", rotation: 30}, {y: "+=700", rotation: 7, duration: .45, ease: "back.out(1.5)", immediateRender: false}, 9.9); cue(10.25, "label-jatuh-1", .55);
+pop(tag, 10.6, 1); cue(10.6, "pop-huruf-2", .45);
+
+// 12–22 · berlayar ke Nusantara (momen andalan)
+const H0 = {x: M.hamburg[0], y: M.hamburg[1]};
+tl.to([foto, lblNama, tag, lingkar, tahun, pin], {autoAlpha: 0, duration: .25}, 11.8);
+tl.to(botol, {x: H0.x + 30 - 100, y: H0.y - 150 - 210, scale: .5, rotation: 0, duration: .45, ease: "power2.in"}, 11.9);
+tl.set(botol, {autoAlpha: 0}, 12.35);
+tl.fromTo(kapal, {autoAlpha: 0, scale: .2}, {autoAlpha: 1, scale: 1, duration: .3, ease: "back.out(2)"}, 12.1); cue(12.1, "whoosh-cepat", .45);
+tl.to(cam, {x: H0.x, y: H0.y + 150, s: 1.0, duration: .6, ease: "power2.inOut"}, 11.9);
+cue(12.45, "klakson-kapal", .35); cue(12.6, "ombak-laut-loop", .22); cue(18.6, "ombak-laut-loop", .2);
+tl.to(boat, {p: 1, duration: 6.6, ease: "power1.inOut"}, 12.6);
+tl.to(rjalan, {strokeDashoffset: 0, duration: 6.6, ease: "power1.inOut"}, 12.6);
+tl.to({}, {duration: .5, onUpdate() { followBoat = this.progress(); }}, 12.6);
+tl.to(cam, {s: .62, duration: 2.6, ease: "power1.inOut"}, 13.4);
+tl.to(cam, {s: .9, duration: 2.0, ease: "power1.inOut"}, 17.0);
+tl.to({}, {duration: .9, onUpdate() { followBoat = 1 - this.progress(); }}, 19.0);
+tl.to(cam, {x: 3420, y: 2230, s: .82, duration: .9, ease: "power2.inOut"}, 19.0);
+tl.to(indo, {fill: C.mint, duration: .01}, 19.35); cue(19.35, "kertas-dibalik-1", .5);
+pop(lblHB, 19.6, 1, -3);
+stiker.forEach((s, i) => { const t = 20.0 + i * .22; pop(s, t, 1, gsap.getProperty(s, "rotation")); cue(t, "pop-huruf-" + (i % 4 + 1), .5); });
+
+// 22–32 · sobekan kertas → merek generik
+const sobek = $("#sobek");
+(function(){ const a=[]; for(let i=0;i<=40;i++) a.push(`${i*2.5}% ${(4+hash(i+300)*5).toFixed(2)}%`); for(let i=40;i>=0;i--) a.push(`${i*2.5}% ${(96-hash(i+500)*5).toFixed(2)}%`); sobek.style.clipPath=`polygon(${a.join(",")})`; })();
+tl.fromTo(sobek, {y: 2200}, {y: -400, duration: .55, ease: "power2.in"}, 21.75); cue(21.75, "whoosh-transisi", .5); cue(21.8, "kertas-kresek-panjang", .35);
+tl.set(cam, {x: LZ.x, y: LZ.y - 300, s: 1.05}, 22.3);
+tl.set([kapal, ...stiker, lblHB], {autoAlpha: 0}, 22.3);
+tl.to(sobek, {y: -2700, duration: .5, ease: "power2.out"}, 22.3);
+const jatuh = (el, i, t) => {
+  tl.set(el, {autoAlpha: 1}, t); tl.fromTo(el, {y: "-=1300", rotation: kartuRot[i] - 25}, {y: "+=1300", rotation: kartuRot[i], duration: .38, ease: "power2.in", immediateRender: false}, t)
+    .to(el, {y: "-=24", duration: .1, ease: "power1.out"}, t + .38).to(el, {y: "+=24", duration: .14, ease: "power1.in"}, t + .48);
+  cue(t + .3, "label-jatuh-" + (i + 1), .65);
+};
+jatuh(kartu[0], 0, 22.7);
+pop(judul, 23.9, 1); tl.set(judulLing, {autoAlpha: 1}, 24.4); draw(judulLingP, 24.4, .55); cue(24.4, "kertas-kresek-pendek", .3);
+tl.to(cam, {y: LZ.y - 150, s: .92, duration: 1.2, ease: "power1.inOut"}, 25.4);
+jatuh(kartu[1], 1, 26.3);
+tl.to(cam, {y: LZ.y + 40, s: .86, duration: 1.4, ease: "power1.inOut"}, 27.6);
+jatuh(kartu[2], 2, 29.3);
+tl.to(cam, {x: LZ.x, y: LZ.y - 30, s: 1.08, duration: 1.4, ease: "power1.inOut"}, 30.3);
+
+// 32–40 · tanda tanya + ajakan
+tl.to(cam, {x: QZ.x, y: QZ.y, s: .95, duration: .6, ease: "power3.inOut"}, 31.95); cue(31.9, "whoosh-cepat", .5);
+tl.set(tanganEl, {autoAlpha: 1}, 32.3); tl.fromTo(tanganEl, {x: "+=700", y: "+=700"}, {x: "-=700", y: "-=700", duration: .7, ease: "power2.out", immediateRender: false}, 32.3); cue(32.35, "kertas-kresek-pendek", .4);
+tl.set(tanya, {autoAlpha: 1}, 32.3); tl.fromTo(tanya, {x: "+=420", y: "+=520", rotation: 25, scale: .55}, {x: "-=420", y: "-=520", rotation: -4, scale: 1, duration: .7, ease: "power2.out", immediateRender: false}, 32.3);
+tl.to(tanya, {scaleY: .93, duration: .07}, 33.0).to(tanya, {scaleY: 1, duration: .25, ease: "back.out(3)"}, 33.07); cue(33.0, "ding", .55);
+tl.to(tanganEl, {x: "+=800", y: "+=800", duration: .6, ease: "power2.in"}, 33.35);
+pop(ajak, 34.1, 1, -2); tl.set(garisAjak, {autoAlpha: 1}, 34.5); draw(garisAjakP, 34.5, .45);
+bubble.forEach((b, i) => { const t = 35.2 + i * .45; pop(b, t, 1, bubblePos[i][2]); cue(t, "pop-huruf-" + (i + 1), .5); });
+tl.to(cam, {s: 1.06, y: QZ.y + 60, duration: 4.2, ease: "power1.inOut"}, 35.8);
+tl.to({}, {duration: DUR - tl.duration()}, tl.duration());   // pas 40 detik
+
+/* ---------- RENDER & PEMUTAR ---------- */
+function render(t) {
+  const tq = q(t);
+  tl.time(tq, false);
+  // kapal mengikuti rute (fungsi waktu)
+  if (gsap.getProperty(kapal, "autoAlpha") > 0) {
+    const b = along(boat.p), bob = Math.sin(tq * 6) * 5;
+    gsap.set(kapal, {x: b.x - 160, y: b.y - 280 + bob, rotation: Math.sin(tq * 3.3) * 4});
+  }
+  applyCam(tq); applyBoil(tq);
+}
+window.CUES = CUES; window.DUR = DUR;
+window.seek = t => { render(t); return true; };
+
+function fit() { const s = Math.min(innerWidth / 1080, innerHeight / 1920); stage.style.transform = `translate(${-540 * s}px,${-960 * s}px) scale(${s})`; }
+addEventListener("resize", fit); fit();
+
+const P = new URLSearchParams(location.search);
+const clock = gsap.timeline({paused: true, repeat: -1});
+let lastT = 0;
+const sfx = {};
+function playCues(a, b) { CUES.forEach(([t, f, v]) => { if (t >= a && t < b) { const au = (sfx[f] ||= new Audio("sfx/" + f + ".mp3")).cloneNode(); au.volume = v; au.play().catch(() => {}); } }); }
+clock.to({}, {duration: DUR, onUpdate() {
+  const t = clock.time() % DUR;
+  if (t < lastT) lastT = 0;
+  if (!P.has("clean")) playCues(lastT, t);
+  lastT = t; render(t); if (P.has("debug")) { $("#scrub").value = t; $("#dt").textContent = t.toFixed(2); }
+}});
+render(0);
+if (P.has("debug")) {
+  $("#debug").style.display = "flex";
+  $("#scrub").addEventListener("input", e => { clock.pause(); lastT = +e.target.value; render(+e.target.value); $("#dt").textContent = (+e.target.value).toFixed(2); });
+}
+function mulai() { if (!clock.isActive()) clock.play(); }
+if (!P.has("clean")) {
+  const uji = new Audio("sfx/ding.mp3"); uji.volume = 0;   // tes izin autoplay tanpa terdengar
+  uji.play().then(mulai).catch(() => addEventListener("pointerdown", mulai, {once: true}));
+}
+addEventListener("keydown", e => { if (e.code === "Space") clock.isActive() ? clock.pause() : clock.play(); if (e.key === "r" || e.key === "R") { lastT = 0; clock.time(0).play(); } });
+</script>
+</body>
+</html>
