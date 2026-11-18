@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Motion 3D</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <canvas id="scene" aria-hidden="true"></canvas>
+
+    <main>
+      <section class="panel hero">
+        <p class="eyebrow">Three.js × GSAP</p>
+        <h1 class="title">Bentuk yang<br />bergerak</h1>
+        <p class="lead">Scroll ke bawah untuk menggerakkan objek 3D.</p>
+      </section>
+
+      <section class="panel right">
+        <h2>Timeline</h2>
+        <p>Intro dirangkai dengan <code>gsap.timeline()</code>: objek muncul, kamera mendekat, teks menyusul.</p>
+      </section>
+
+      <section class="panel">
+        <h2>ScrollTrigger</h2>
+        <p>Rotasi, posisi, dan warna objek mengikuti posisi scroll dengan <code>scrub</code>.</p>
+      </section>
+
+      <section class="panel right">
+        <h2>Siap dipakai</h2>
+        <p>Ganti objek di <code>src/main.js</code> dengan model <code>.glb</code> kamu sendiri.</p>
+      </section>
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
