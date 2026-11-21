@@ -1,12 +1,12 @@
-"""Foley for 叮之前 / Before the Ding (Tabletop App Flythrough demo): every on-screen action gets a sound; pitched sounds take their notes from the score's harmony.json,
+"""Foley for Kenapa Pasta Gigi Disebut Odol? (Tabletop App Flythrough): every on-screen action gets a sound; pitched sounds take their notes from the score's harmony.json,
 camera whips get whooshes sized by the measured camera speed. Usage: sfx.py <events.json> <camspeed.json> <harmony.json> <out.wav>"""
 import sys, os, json
 import numpy as np
-sys.path.insert(0, os.path.join(os.environ.get('LIB', os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../..'))), 'core/audio'))
+sys.path.insert(0, os.path.join(os.environ.get('LIB', os.path.expanduser('~/lemo-opuscar')), 'core/audio'))
 from sfx import SR, t_, env_exp, bp, lp, hp, noise, norm, whoosh, thump, click, step, add
 
 ev = json.load(open(sys.argv[1]))['ev']; cam = json.load(open(sys.argv[2])); HAR = json.load(open(sys.argv[3]))
-DUR = float(os.environ.get("DUR", 59.95)); N = int(DUR * SR); out = np.zeros((N, 2))
+DUR = float(os.environ.get("DUR", 92.0)); N = int(DUR * SR); out = np.zeros((N, 2))
 hz = lambda m: 440 * 2 ** ((m - 69) / 12)
 def chord(t):
     b = max(0, min(len(HAR) - 1, int(t // 2))); return HAR[b]['notes']
@@ -74,35 +74,43 @@ def wrong(v=1.0):
     return norm(o) * v
 def buzz(d, v=1.0):   # moth wings: a soft fluttering noise, amplitude-modulated at wing rate
     tt = t_(d); return norm(bp(noise(d), 300, 2400) * (.5 + .5 * np.sin(2 * np.pi * 26 * tt)) ** 2) * v
+# the user's paper/stop-motion sound effects (assets/audio/efek-suara, free to use), decoded once
+import subprocess
+FX = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'assets/audio/efek-suara')
+_fx = {}
+def fx(name):
+    if name not in _fx:
+        raw = subprocess.run(['ffmpeg', '-v', 'error', '-i', os.path.join(FX, name + '.mp3'), '-f', 'f32le', '-ac', '1', '-ar', str(SR), '-'], capture_output=True, check=True).stdout
+        _fx[name] = np.frombuffer(raw, '<f4').astype(np.float64)
+    return _fx[name]
+def loop(name, d, v):
+    x = fx(name); n = int(d * SR); reps = np.tile(x, n // len(x) + 1)[:n]; f = int(.6 * SR); env = np.ones(n); env[:f] = np.linspace(0, 1, f); env[-f:] = np.linspace(1, 0, f); return reps * env * v
 for e in sorted(ev, key=lambda e: e['t']):
     t, ty = e['t'], e['type']; pan = float(R.uniform(-.3, .3)); k = e.get('k', 0)
     if ty == 'pop': g = 1.2 if e.get('big') else 1.0; add(out, marimba(hz(note(q16(t), k % 7, 0)), .5, .25 * g), q16(t), 1, pan); add(out, poppy(400 + 40 * (k % 7), 1300, .12, .12 * g), t, 1, pan)
+    elif ty == 'unpop': add(out, poppy(1300, 400, .16, .1), t, 1, pan); add(out, fx('kertas-dibalik-1') * .25, t, 1, pan)
+    elif ty == 'key': add(out, key(.12), t, 1, -.1)
     elif ty == 'send': add(out, click(1.1, .2), t, 1, .1); add(out, swish(.3, .1), t + .05, 1, .2)
-    elif ty == 'ding': add(out, bell(hz(note(t, 2, 2)), 1.2, .2), t, 1, .4); add(out, bell(hz(note(t, 0, 2)), 1.2, .14), t + .07, 1, .4)
-    elif ty == 'rewind': add(out, rise(.35, .06, 3000, 400), t, 1)
-    elif ty == 'dash':
-        if (tq := onslot('dash', t)) is not None: add(out, click(.9 + .05 * k, .08), tq, 1, -.4 + .15 * k)
-    elif ty == 'nope': add(out, thump(.25, 90), t, 1); add(out, poppy(900, 500, .12, .06), t, 1)
-    elif ty == 'dot':
-        if (tq := onslot('dot', t)) is not None: add(out, blip(hz(note(tq, k % 4, 2)), .08, .045), tq, 1, -.4 + k * .1)
+    elif ty == 'ding': add(out, bell(hz(note(t, 2, 2)), 1.2, .2), t, 1, -.2); add(out, bell(hz(note(t, 0, 2)), 1.2, .14), t + .07, 1, -.2)
+    elif ty == 'nope': add(out, wrong(.14), t, 1)
+    elif ty == 'tick': add(out, blip(hz(note(q16(t), k % 4, 2)), .08, .06), q16(t), 1, .2)
     elif ty == 'hop': add(out, swish(.12, .05), t, 1, pan); add(out, blip(hz(note(q16(t), k % 3, 1)), .08, .06), q16(t), 1, pan)
     elif ty == 'jump': add(out, swish(.25, .09), t, 1, pan)
     elif ty == 'land': add(out, thump(.3 * e.get('v', 1), 105), t, 1); add(out, step(.1 * e.get('v', 1)), t, 1, pan)
     elif ty == 'badge': add(out, poppy(500, 1300, .1, .08), t, 1, .2); add(out, blip(hz(note(t, k % 3, 2)), .1, .06), q16(t), 1, .2)
-    elif ty == 'drop': add(out, fall(.25, .1), t, 1)
+    elif ty == 'drop': add(out, fall(.25, .08), t, 1)
+    elif ty == 'pin': add(out, fx('pin-ditancap') * .4, t - .03, 1, .1); add(out, thump(.25, 120), t, 1)
+    elif ty == 'bubble': [add(out, blip(700 + 220 * j, .05, .03), t + j * .27, 1, .3) for j in range(10)]
+    elif ty == 'horn': add(out, fx('klakson-kapal') * .28, t, 1, .2)
+    elif ty == 'waves': add(out, loop('ombak-laut-loop', e['d'], .16), t - .3, 1, 0)
+    elif ty == 'print': add(out, fx('kertas-dibalik-2') * .3, t - .05, 1, pan); add(out, stampS(.12), t, 1, pan)
+    elif ty == 'slam': big = e.get('big'); add(out, slam(.75 if big else .45, 55 if big else 70), t, 1); add(out, crumble(.3, .08, 16, 1.1), t + .02, 1); add(out, stampS(.2), t, 1)
+    elif ty == 'brush': d = e['d']; tt = t_(d); add(out, norm(bp(noise(d), 2500, 9000) * (.5 + .5 * np.sin(2 * np.pi * 3.5 * tt)) ** 2) * .035, t, 1, -.2)
+    elif ty == 'tent': add(out, fx(['label-jatuh-1', 'label-jatuh-2', 'label-jatuh-3'][k % 3]) * .35, t - .1, 1, -.2 + .2 * k); add(out, marimba(hz(note(t, k, 1)), .5, .18), q16(t), 1, -.2 + .2 * k)
+    elif ty == 'comment': add(out, fx('pop-huruf-' + str(k % 4 + 1)) * .3, t, 1, .2); [add(out, key(.08), t + .05 + j * .06, 1, .2) for j in range(5)]
+    elif ty == 'snip': add(out, click(1.4, .25), t, 1, -.1); add(out, click(1.6, .2), t + .2, 1, -.1)
+    elif ty == 'cut': add(out, fx('kertas-kresek-pendek') * .35, t - .05, 1, -.1); add(out, click(1.8, .3), t, 1, -.1)
     elif ty == 'titleLand': add(out, thump(.55, 75), t, 1); add(out, step(.18), t, 1); add(out, bell(hz(note(t, 0, 2)), 1.6, .16), t + .02, 1, 0); add(out, bell(hz(note(t, 2, 2)), 1.4, .1), t + .1, 1, 0)
-    elif ty == 'press': add(out, slam(.6, 60), t, 1); add(out, crumble(.25, .08, 14, 1.2), t + .02, 1)
-    elif ty == 'tickdown': add(out, click(1.3 - .05 * k, .1), t, 1, .2)
-    elif ty == 'drawer': d = .3; add(out, norm(bp(noise(d), 300, 2500) * np.sin(np.pi * t_(d) / d)) * .07, t, 1, .1); add(out, click(.7, .1), t + d, 1, .1)
-    elif ty == 'lit': add(out, bell(hz(note(t, 1, 2)), .8, .1), t, 1, .1)
-    elif ty == 'fly': add(out, rise(.7, .06, 600, 2500), t, 1, .3); add(out, swish(.6, .07), t, 1, .3)
-    elif ty == 'tap': add(out, click(1.0, .18), t, 1, .4)
-    elif ty == 'banner': add(out, poppy(600, 1200, .12, .07), t, 1, .4)
-    elif ty == 'ring': add(out, bell(hz(note(t, 2, 2)), 1.4, .24), t, 1, .4); add(out, bell(hz(note(t, 0, 2)), 1.4, .18), t + .08, 1, .4); add(out, bell(hz(note(t, 2, 2)), 1.0, .12), t + .26, 1, .4)
-    elif ty == 'fetch': add(out, rise(1.0, .05, 400, 2200), t, 1, -.2)
-    elif ty == 'weak': add(out, blip(hz(note(t, 0, 1)), .12, .05), t, 1, .3); add(out, blip(hz(note(t, 0, 1)) * .94, .12, .05), t + .18, 1, .3)
-    elif ty == 'sharp': add(out, rise(.25, .07, 2000, 7000), t - .2, 1, .2); add(out, bell(hz(note(t, 2, 2)), .8, .1), t, 1, .2)
-    elif ty == 'credit': add(out, bell(hz(note(t, 0, 2)), 1.6, .08), t, 1, .3)
 # camera whips: one whoosh per burst of fast motion, length and level from the measured speed
 sp = np.array([c[1] + .25 * c[2] for c in cam]); ts = np.array([c[0] for c in cam]); i = 0
 while i < len(sp):

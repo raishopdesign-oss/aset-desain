@@ -22,7 +22,7 @@ const q16 = t => Math.round(t * 8) / 8;     // snap to the 16th grid (120 BPM)
 export const T = {
   type: [.5, 1.5], ding: 1.75, kid: 1.0, tubes: [3.5, 4.375, 5.5], odolQ: 8.75, reply: 6.75,
   hopB: [[9.625, 9.95], [10.05, 10.5]], search: [10.5, 11.25], sign: 11.5, rowX: 12.75, rowMerek: 15.0, bottle: 15.5, rowJerman: 16.375, rowAbad: 18.25,
-  hopC: [[19.5, 19.875], [19.95, 20.5]], pinC: 21.125, tower: 21.625, y1892: 23.375, lingner: 26.125, labSign: 26.75, bottleHop: [28.75, 29.25],
+  hopC: [[19.5, 19.875], [19.95, 20.5]], pinC: 21.125, tower: 21.625, y1892: 23.375, lingner: 25.625, labSign: 26.75, bottleHop: [28.75, 29.25],
   kumur: 34.125, notPaste: 35.375, seifert: 38.625, flask: 39.0, crates: [40.125, 40.375, 40.625], lingnerNod: 41.5,
   ship: 43.25, boardHero: [43.75, 44.25], boardBottle: [44.375, 44.875], sail: [46.25, 49.75], pinE: 49.875, offShip: [50.0, 50.5],
   bottleAd: [50.25, 50.75], y1894: 49.375, hindia: 52.5, tube1903: 55.625, y1903: 57.75,
@@ -328,10 +328,10 @@ export function build(ctx) {
 
   // ── the route: accent dots laid as the hero travels; the sea leg in pale blue dashes ──
   const P = {
-    hero0: at('shelf', 60, 160, TOP), heroB: onPaper(.01, .5), heroC: onPaper(.04, -.08),
+    hero0: at('shelf', 60, 160, TOP), heroB: onPaper(.05, .64), heroC: onPaper(.04, -.08),
     port: null, bat: null, heroE: onPaper(.03, -1.0),
     heroF: at('shelfF', 236, 200, TOP), heroG: onPaper(.07, -2.12), kidA: onPaper(-.02, 1.04), kidG: onPaper(-.05, -2.18),
-    bottleB: onPaper(.0, .4), bottleLab: at('lab', 200, 210, TOP), lingner: at('lab', 88, 250, TOP), seifert: at('lab', 312, 250, TOP),
+    bottleB: onPaper(.055, .44), bottleLab: at('lab', 200, 210, TOP), lingner: at('lab', 88, 250, TOP), seifert: at('lab', 312, 250, TOP),
     flask: at('lab', 312, 150, TOP), t03F: at('shelfF', 90, 200, TOP), fB: at('shelfF', 382, 200, TOP), fC: at('shelfF', 528, 200, TOP), adNews: at('news', 160, 300, TOP), t03N: at('news', 160, 440, 0),
   };
   // map coordinates → world (after the first draw the projections exist)
