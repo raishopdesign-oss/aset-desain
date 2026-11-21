@@ -221,9 +221,9 @@ let LOGO_IMG = null;
 function drawLogo(c, st) {
   const w = 440, h = 300; c.clearRect(0, 0, w, h); c.fillStyle = C.card; K.rr(c, 0, 0, w, h, 20); c.fill(); K.grain(c, w, h, 53);
   c.fillStyle = C.accent; c.fillRect(0, 0, w, 14);
-  if (LOGO_IMG) { const s = Math.min(150 / LOGO_IMG.width, 130 / LOGO_IMG.height); c.drawImage(LOGO_IMG, w / 2 - LOGO_IMG.width * s / 2, 36, LOGO_IMG.width * s, LOGO_IMG.height * s); }
-  else { K.txt(c, '✂', w / 2, 84, { size: 64, wt: 800, font: K.SANS, col: C.coral, align: 'center' }); }
-  K.txt(c, 'GUNTING FAKTA', w / 2, 196, { size: 44, wt: 800, font: K.SANS, align: 'center', ls: 2 });
+  if (LOGO_IMG) { const d = 196; c.save(); c.shadowColor = 'rgba(20,30,50,.25)'; c.shadowBlur = 10; c.shadowOffsetY = 3; c.drawImage(LOGO_IMG, w / 2 - d / 2, 24, d, d); c.restore(); }
+  else { K.txt(c, '✂', w / 2, 84, { size: 64, wt: 800, font: K.SANS, col: C.coral, align: 'center' });
+    K.txt(c, 'GUNTING FAKTA', w / 2, 196, { size: 44, wt: 800, font: K.SANS, align: 'center', ls: 2 }); }
   c.fillStyle = C.ink; K.rr(c, 70, 228, 300, 46, 23); c.fill();
   K.txt(c, 'FOLLOW @GUNTINGFAKTA', w / 2, 252, { size: 18, wt: 500, col: '#fff', align: 'center', ls: 1.5 });
 }
