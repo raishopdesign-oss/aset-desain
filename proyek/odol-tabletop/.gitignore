@@ -1,0 +1,6 @@
+stills/
+out/
+events.json
+*.wav
+!vo/*.wav
+vo/.cache/
