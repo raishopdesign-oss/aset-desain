@@ -1,4 +1,4 @@
-"""Foley for Kenapa Pasta Gigi Disebut Odol? (Tabletop App Flythrough): every on-screen action gets a sound; pitched sounds take their notes from the score's harmony.json,
+"""Foley for Kenapa Semua Air Mineral Disebut Aqua? (Tabletop App Flythrough): every on-screen action gets a sound; pitched sounds take their notes from the score's harmony.json,
 camera whips get whooshes sized by the measured camera speed. Usage: sfx.py <events.json> <camspeed.json> <harmony.json> <out.wav>"""
 import sys, os, json
 import numpy as np
@@ -110,6 +110,15 @@ for e in sorted(ev, key=lambda e: e['t']):
     elif ty == 'comment': add(out, fx('pop-huruf-' + str(k % 4 + 1)) * .3, t, 1, .2); [add(out, key(.08), t + .05 + j * .06, 1, .2) for j in range(5)]
     elif ty == 'snip': add(out, click(1.4, .25), t, 1, -.1); add(out, click(1.6, .2), t + .2, 1, -.1)
     elif ty == 'cut': add(out, fx('kertas-kresek-pendek') * .35, t - .05, 1, -.1); add(out, click(1.8, .3), t, 1, -.1)
+    elif ty == 'kettle':   # a kettle coming to the boil: rising hiss, then a soft whistle
+        d = e['d']; tt = t_(d); hiss = norm(bp(noise(d), 1500, 7000)) * np.clip(tt / d, 0, 1) ** 1.5 * .03
+        wh = np.sin(2 * np.pi * np.cumsum(1900 + 120 * np.sin(2 * np.pi * 5 * tt)) / SR) * np.clip((tt - d * .6) / (d * .3), 0, 1) * np.clip((d - tt) / .4, 0, 1) * .018
+        add(out, hiss + wh, t, 1, .25)
+    elif ty == 'engine':   # a small truck pulling away and driving past: low rumble, amplitude-modulated, panned left to right
+        d = e['d']; tt = t_(d); rum = norm(lp(noise(d), 160)) * (.6 + .4 * np.sin(2 * np.pi * 9 * tt)) * np.clip(tt / .5, 0, 1) * np.clip((d - tt) / .8, 0, 1) * .09
+        n = len(rum); L = rum * np.linspace(1, .4, n); R_ = rum * np.linspace(.4, 1, n); s0 = int(t * SR); m = min(n, N - s0)
+        if m > 0: out[s0:s0 + m, 0] += L[:m]; out[s0:s0 + m, 1] += R_[:m]
+    elif ty == 'coin': add(out, bell(2600 + 300 * k, .35, .05), t, 1, .2); add(out, bell(3900 + 200 * k, .25, .03), t + .015, 1, .2); add(out, thump(.12, 300), t, 1)
     elif ty == 'titleLand': add(out, thump(.55, 75), t, 1); add(out, step(.18), t, 1); add(out, bell(hz(note(t, 0, 2)), 1.6, .16), t + .02, 1, 0); add(out, bell(hz(note(t, 2, 2)), 1.4, .1), t + .1, 1, 0)
 # camera whips: one whoosh per burst of fast motion, length and level from the measured speed
 sp = np.array([c[1] + .25 * c[2] for c in cam]); ts = np.array([c[0] for c in cam]); i = 0
