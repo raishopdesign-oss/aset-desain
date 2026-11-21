@@ -4,8 +4,8 @@ from PIL import Image, ImageDraw, ImageFont
 W, H = 1080, 1920
 bg = Image.open('qc/th/t_56.5.jpg').convert('RGB')
 bg = bg.resize((int(W * 1.08), int(H * 1.08)), Image.LANCZOS).crop((int(W * .04), 0, int(W * .04) + W, H)).convert('RGBA')
-def F(sz, wt=800):
-    f = ImageFont.truetype('fonts/Manrope.ttf', sz); f.set_variation_by_axes([wt]); return f
+def F(sz, wt=700):   # Poppins Bold throughout (wt kept for call compatibility)
+    return ImageFont.truetype('fonts/Poppins-Bold.ttf', sz)
 g = Image.new('L', (1, H))
 for y in range(H): g.putpixel((0, y), int(max(0, min(1, (y - 1020) / 330)) ** 1.3 * 238))
 nv = Image.new('RGBA', (W, H), (10, 22, 52, 255)); nv.putalpha(g.resize((W, H))); bg.alpha_composite(nv)
@@ -14,7 +14,7 @@ def center(t, y, f, fill, st=0):
     d.text(((W - d.textlength(t, font=f)) / 2, y), t, font=f, fill=fill, stroke_width=st, stroke_fill=NAV)
 k = 'SELAMA INI KITA SALAH SEBUT?'; fk = F(40); kw = d.textlength(k, font=fk)
 d.rounded_rectangle(((W - kw) / 2 - 34, 1170, (W + kw) / 2 + 34, 1246), radius=38, fill=YEL); center(k, 1181, fk, NAV)
-fh = F(132)
+fh = F(122)
 center('ODOL ITU', 1262, fh, WHT, 5)
 w1, w2, gap = d.textlength('NAMA', font=fh), d.textlength('MEREK!', font=fh), 30; x = (W - (w1 + gap + w2)) / 2
 d.text((x, 1405), 'NAMA', font=fh, fill=WHT, stroke_width=5, stroke_fill=NAV); d.text((x + w1 + gap, 1405), 'MEREK!', font=fh, fill=YEL, stroke_width=5, stroke_fill=NAV)
