@@ -4,206 +4,177 @@ export const DUR = 92.0;
 export const LINES = [{"id": "L01", "t0": 0.5, "t1": 2.465, "text": "Pernah nggak, kamu disuruh beli odol?"}, {"id": "L02", "t0": 2.8, "t1": 6.349, "text": "Padahal yang dibeli Pepsodent, Close Up, atau merek lainnya."}, {"id": "L03", "t0": 6.65, "t1": 9.352, "text": "Kenapa semua pasta gigi di Indonesia sering disebut odol?"}, {"id": "L04", "t0": 10.1, "t1": 11.54, "text": "Jawabannya ternyata menarik."}, {"id": "L05", "t0": 11.85, "t1": 14.216, "text": "Odol awalnya bukan nama untuk semua pasta gigi."}, {"id": "L06", "t0": 14.5, "t1": 19.44, "text": "Odol adalah merek produk perawatan mulut asal Jerman, yang dikenal sejak akhir abad ke-19."}, {"id": "L07", "t0": 20.2, "t1": 22.639, "text": "Ceritanya bermula di Dresden, Jerman."}, {"id": "L08", "t0": 22.95, "t1": 28.362, "text": "Pada tahun 1892, pengusaha Karl August Lingner mendirikan laboratorium kimia di sana."}, {"id": "L09", "t0": 28.65, "t1": 31.307, "text": "Dari sinilah Odol mulai dikembangkan dan dipasarkan."}, {"id": "L10", "t0": 32.1, "t1": 36.753, "text": "Menariknya, Odol awalnya dikenal sebagai obat kumur antiseptik, bukan pasta gigi."}, {"id": "L11", "t0": 37.1, "t1": 42.005, "text": "Formulanya dikembangkan oleh ahli kimia Richard Seifert, lalu diproduksi dan dipasarkan oleh Lingner."}, {"id": "L12", "t0": 42.9, "t1": 45.665, "text": "Lalu, bagaimana Odol bisa dikenal di Indonesia?"}, {"id": "L13", "t0": 46.1, "t1": 53.517, "text": "Ternyata, produk ini sudah diiklankan di Batavia sejak tahun 1894, saat Indonesia masih bernama Hindia Belanda."}, {"id": "L14", "t0": 53.9, "t1": 59.262, "text": "Sementara itu, pasta gigi Odol mulai dipasarkan sekitar tahun 1903."}, {"id": "L15", "t0": 60.9, "t1": 64.34, "text": "Karena lebih dulu dikenal luas, nama Odol melekat di ingatan masyarakat."}, {"id": "L16", "t0": 64.7, "t1": 70.971, "text": "Bahkan saat merek lain bermunculan, dan Odol tak lagi dijual di sini, kebiasaan menyebut pasta gigi odol tetap bertahan."}, {"id": "L17", "t0": 71.9, "t1": 78.244, "text": "Jadi, odol sebenarnya nama merek asal Jerman, yang begitu populer hingga jadi sebutan untuk semua pasta gigi."}, {"id": "L18", "t0": 78.6, "t1": 82.382, "text": "Hal serupa juga terjadi pada Aqua, Sanyo, dan Honda."}, {"id": "L19", "t0": 83.0, "t1": 86.069, "text": "Nah, kalau di daerahmu, pasta gigi disebut apa?"}, {"id": "L20", "t0": 86.4, "t1": 89.47, "text": "Tulis di kolom komentar, dan share video ini ke teman-temanmu!"}];
 export const VO = [
 {
-"t0": 0.5,
-"t1": 2.465,
-"zh": "Pernah nggak, kamu disuruh beli odol?",
-"en": "",
-"line": "L01"
+"t0": 0.3,
+"t1": 2.325,
+"zh": "Pernah gak, kamu disuruh beli odol?",
+"en": ""
 },
 {
-"t0": 2.8,
-"t1": 6.349,
+"t0": 2.45,
+"t1": 6.048,
 "zh": "Padahal yang dibeli Pepsodent, Close Up, atau merek lainnya.",
-"en": "",
-"line": "L02"
+"en": ""
 },
 {
-"t0": 6.65,
-"t1": 9.352,
+"t0": 6.3,
+"t1": 8.997,
 "zh": "Kenapa semua pasta gigi di Indonesia sering disebut odol?",
-"en": "",
-"line": "L03"
+"en": ""
 },
 {
-"t0": 10.1,
-"t1": 11.54,
+"t0": 9.75,
+"t1": 11.824,
 "zh": "Jawabannya ternyata menarik.",
-"en": "",
-"line": "L04"
+"en": ""
 },
 {
-"t0": 11.85,
-"t1": 14.216,
+"t0": 11.934,
+"t1": 14.773,
 "zh": "Odol awalnya bukan nama untuk semua pasta gigi.",
-"en": "",
-"line": "L05"
+"en": ""
 },
 {
-"t0": 14.5,
-"t1": 17.36,
+"t0": 14.894,
+"t1": 17.92,
 "zh": "Odol adalah merek produk perawatan mulut asal Jerman,",
-"en": "",
-"line": "L06"
+"en": ""
 },
 {
-"t0": 17.36,
-"t1": 19.44,
+"t0": 18.28,
+"t1": 20.547,
 "zh": "yang dikenal sejak akhir abad ke-19.",
-"en": "",
-"line": "L06"
+"en": ""
 },
 {
-"t0": 20.2,
-"t1": 22.639,
+"t0": 20.653,
+"t1": 22.655,
 "zh": "Ceritanya bermula di Dresden, Jerman.",
-"en": "",
-"line": "L07"
+"en": ""
 },
 {
-"t0": 22.95,
-"t1": 25.81,
+"t0": 22.764,
+"t1": 27.2,
 "zh": "Pada tahun 1892, pengusaha Karl August Lingner",
-"en": "",
-"line": "L08"
+"en": ""
 },
 {
-"t0": 25.81,
-"t1": 28.362,
+"t0": 27.2,
+"t1": 29.397,
 "zh": "mendirikan laboratorium kimia di sana.",
-"en": "",
-"line": "L08"
+"en": ""
 },
 {
-"t0": 28.65,
-"t1": 31.307,
+"t0": 29.505,
+"t1": 32.543,
 "zh": "Dari sinilah Odol mulai dikembangkan dan dipasarkan.",
-"en": "",
-"line": "L09"
+"en": ""
 },
 {
-"t0": 32.1,
-"t1": 36.753,
+"t0": 32.657,
+"t1": 37.696,
 "zh": "Menariknya, Odol awalnya dikenal sebagai obat kumur antiseptik, bukan pasta gigi.",
-"en": "",
-"line": "L10"
+"en": ""
 },
 {
-"t0": 37.1,
-"t1": 39.68,
+"t0": 37.818,
+"t1": 40.62,
 "zh": "Formulanya dikembangkan oleh ahli kimia Richard Seifert,",
-"en": "",
-"line": "L11"
+"en": ""
 },
 {
-"t0": 39.68,
-"t1": 42.005,
+"t0": 40.88,
+"t1": 43.024,
 "zh": "lalu diproduksi dan dipasarkan oleh Lingner.",
-"en": "",
-"line": "L11"
+"en": ""
 },
 {
-"t0": 42.9,
-"t1": 45.665,
+"t0": 43.14,
+"t1": 45.468,
 "zh": "Lalu, bagaimana Odol bisa dikenal di Indonesia?",
-"en": "",
-"line": "L12"
+"en": ""
 },
 {
-"t0": 46.1,
-"t1": 50.7,
+"t0": 45.75,
+"t1": 50.96,
 "zh": "Ternyata, produk ini sudah diiklankan di Batavia sejak tahun 1894,",
-"en": "",
-"line": "L13"
+"en": ""
 },
 {
-"t0": 50.7,
-"t1": 53.517,
+"t0": 51.42,
+"t1": 53.902,
 "zh": "saat Indonesia masih bernama Hindia Belanda.",
-"en": "",
-"line": "L13"
+"en": ""
 },
 {
-"t0": 53.9,
-"t1": 59.262,
+"t0": 54.01,
+"t1": 58.857,
 "zh": "Sementara itu, pasta gigi Odol mulai dipasarkan sekitar tahun 1903.",
-"en": "",
-"line": "L14"
+"en": ""
 },
 {
-"t0": 60.9,
-"t1": 62.58,
+"t0": 61.0,
+"t1": 62.96,
 "zh": "Karena lebih dulu dikenal luas,",
-"en": "",
-"line": "L15"
+"en": ""
 },
 {
-"t0": 62.58,
-"t1": 64.34,
+"t0": 62.96,
+"t1": 64.87,
 "zh": "nama Odol melekat di ingatan masyarakat.",
-"en": "",
-"line": "L15"
+"en": ""
 },
 {
-"t0": 64.7,
-"t1": 66.76,
+"t0": 64.983,
+"t1": 66.86,
 "zh": "Bahkan saat merek lain bermunculan,",
-"en": "",
-"line": "L16"
+"en": ""
 },
 {
-"t0": 66.76,
-"t1": 68.5,
+"t0": 66.86,
+"t1": 68.64,
 "zh": "dan Odol tak lagi dijual di sini,",
-"en": "",
-"line": "L16"
+"en": ""
 },
 {
-"t0": 68.5,
-"t1": 70.971,
+"t0": 68.9,
+"t1": 71.518,
 "zh": "kebiasaan menyebut pasta gigi odol tetap bertahan.",
-"en": "",
-"line": "L16"
+"en": ""
 },
 {
-"t0": 71.9,
-"t1": 74.6,
+"t0": 71.634,
+"t1": 74.78,
 "zh": "Jadi, odol sebenarnya nama merek asal Jerman,",
-"en": "",
-"line": "L17"
+"en": ""
 },
 {
-"t0": 74.6,
-"t1": 76.44,
+"t0": 75.1,
+"t1": 76.72,
 "zh": "yang begitu populer hingga jadi",
-"en": "",
-"line": "L17"
+"en": ""
 },
 {
-"t0": 76.44,
-"t1": 78.244,
+"t0": 76.72,
+"t1": 78.541,
 "zh": "sebutan untuk semua pasta gigi.",
-"en": "",
-"line": "L17"
+"en": ""
 },
 {
-"t0": 78.6,
-"t1": 82.382,
+"t0": 78.655,
+"t1": 82.174,
 "zh": "Hal serupa juga terjadi pada Aqua, Sanyo, dan Honda.",
-"en": "",
-"line": "L18"
+"en": ""
 },
 {
-"t0": 83.0,
-"t1": 86.069,
+"t0": 82.65,
+"t1": 85.359,
 "zh": "Nah, kalau di daerahmu, pasta gigi disebut apa?",
-"en": "",
-"line": "L19"
+"en": ""
 },
 {
-"t0": 86.4,
-"t1": 89.47,
+"t0": 86.05,
+"t1": 89.091,
 "zh": "Tulis di kolom komentar, dan share video ini ke teman-temanmu!",
-"en": "",
-"line": "L20"
+"en": ""
 }
 ];
