@@ -53,6 +53,9 @@ export const KEYS = [
   [85.9, 'Gphone', 1.02, .05, 1.02, 38, null, R],
   // the whole desk: curtain call, scissors, the Gunting Fakta card
   [88.2, 'final', 5.1, .04, .86, 38],
-  [92.0, 'final', 5.3, .07, .88, 38],
+  [89.35, 'final', 5.15, .05, .87, 38],
+  // then fly up the desk to the Gunting Fakta card and hold on it
+  [91.0, 'logoC', 2.0, 0, 1.05, 38],
+  [92.0, 'logoC', 1.92, 0, 1.06, 38, null, R],
 ];
 export const SHAKES = [[T.pinC, .003, 9], [T.stamp0, .008, 8], [T.stamps[2], .004, 9], [T.logo, .004, 9]];

@@ -429,7 +429,7 @@ export function build(ctx) {
     C: () => at('mapC', 230, 230, .02), Cpin: () => P.dresden.clone().add(V(0, .03, 0)), lab: () => at('lab', 200, 200, .04), CD: () => P.heroC.clone().add(V(0, .03, -.08)),
     port: () => P.port.clone().add(V(0, .03, 0)), ship: () => ship.root.position.clone().add(V(0, .04, 0)), E: () => at('mapE', 240, 170, .02), news: () => at('news', 160, 230, .02), EN: () => P.heroE.clone().add(V(0, .03, 0)),
     F: () => at('shelfF', 310, 170, .03), G: () => onPaper(.1, -2.45).add(V(0, .03, 0)), tents: () => onPaper(.31, -2.3).add(V(0, .04, 0)), Gphone: () => at('phoneG', 150, 250, .02),
-    hero: mid(hero, .5), wide: () => V(0, 0, MATZ), final: () => V(.0, 0, MATZ + .12),
+    hero: mid(hero, .5), wide: () => V(0, 0, MATZ), final: () => V(.0, 0, MATZ + .12), logoC: () => CARDS.logo.c.clone().add(V(0, .02, .01)),
   });
 
   // ── per frame ──
