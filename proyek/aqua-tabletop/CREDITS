@@ -1,0 +1,10 @@
+Kenapa Pasta Gigi Disebut "Odol"? — Gunting Fakta, Episode 01
+Gaya: Tabletop App Flythrough (Lemo-Opuscar style library). Semua gambar, animasi, musik, dan foley dibuat dengan kode.
+
+Voice-over: Microsoft Edge neural TTS (edge-tts), suara id-ID-ArdiNeural. Dicek dengan faster-whisper (model "small").
+Musik: skor orisinal. Samples (CC0): VS Chamber Orchestra: Community Edition (Versilian Studios), Versilian Community Sample Library (Versilian Studios).
+Efek suara: aset repo ini (assets/audio/efek-suara, dibuat sendiri, bebas pakai) + foley sintetis (core/audio/sfx.py).
+Font: Manrope (SIL OFL 1.1, fonts/OFL-Manrope.txt), DM Mono (SIL OFL 1.1, fonts/OFL-DMMono.txt).
+Data peta: Natural Earth 1:50m land (domain publik) via world-atlas 2.0.2; hanya garis pantai, tanpa batas negara; Eropa dan Jawa saja.
+3D: three.js r170 (MIT).
+Nama merek (Odol, Pepsodent, Close Up, Colgate, Aqua, Sanyo, Honda) disebut sebagai fakta; kemasan di film adalah gambar generik, bukan desain asli.
