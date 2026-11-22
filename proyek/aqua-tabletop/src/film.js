@@ -142,8 +142,8 @@ function drawA(c, st) {
 const SHELF_NAMES = ['LE MINERALE', 'CLUB', 'CLEO'];
 function drawShelf(c, st) {
   K.cardBase(c, 320, 240, 'warung', 'Rak air mineral', { headH: 88, tagSize: 16, cnSize: 21 });
-  SHELF_NAMES.forEach((n, i) => { const x = 16 + i * 98; c.fillStyle = C.faint; K.rr(c, x, 104, 92, 112, 10); c.fill();
-    if (st.n > i) K.txt(c, n, x + 46, 202, { size: n.length > 8 ? 11 : 14, wt: 500, col: C.ink, align: 'center', ls: 1 }); });
+  SHELF_NAMES.forEach((n, i) => { const x = 16 + i * 98; c.fillStyle = C.faint; K.rr(c, x, 100, 92, 132, 10); c.fill();
+    if (st.n > i) K.txt(c, n, x + 46, 222, { size: n.length > 8 ? 11 : 14, wt: 500, col: C.ink, align: 'center', ls: 1 }); });
 }
 // B: the search card
 function drawB(c, st) {
@@ -356,7 +356,7 @@ export function build(ctx) {
   const add = m => { scene.add(m.root); return m; };
   const B = (pal, n, s = .0068) => add(makeMonster(toArt(BOTTLE, pal), s, n, .9));
   const hero = B(BRANDS.hero, 'hero');
-  const shelfB = [B(BRANDS.lemin, 'sl'), B(BRANDS.club, 'sc'), B(BRANDS.cleo, 'so')];
+  const shelfB = [B(BRANDS.lemin, 'sl', .0048), B(BRANDS.club, 'sc', .0048), B(BRANDS.cleo, 'so', .0048)];
   const glassB = add(makeMonster(toArt(GLASS, GLASS_PAL), .006, 'glassB', .9)), modernB = B(BRANDS.prima, 'modernB');
   const kettle = add(makeMonster(toArt(KETTLE, KETTLE_PAL), .0078, 'kettle', .9));
   const bulb = add(makeMonster(toArt(BULB, BULB_PAL), .0068, 'bulb', .9));
@@ -382,7 +382,7 @@ export function build(ctx) {
 
   // ── stations and the route ──
   const P = {
-    hero0: at('shelf', 50, 160, TOP), heroB: onPaper(.03, 2.6), heroC: onPaper(.04, 1.98), heroD: at('home', 120, 220, TOP), heroE: onPaper(.0, .84),
+    hero0: at('shelf', 150, 390, TOP), heroB: onPaper(.03, 2.6), heroC: onPaper(.04, 1.98), heroD: at('home', 120, 220, TOP), heroE: onPaper(.0, .84),
     heroF: at('product', 120, 230, TOP), heroG: onPaper(.06, -.44), heroH: at('shelfF', 590, 196, TOP), heroI: onPaper(.03, -2.58), heroJ: onPaper(.06, -3.3),
     glassB: onPaper(-.05, 2.68), modernB: onPaper(-.1, 2.5), kettle: at('home', 290, 200, TOP), tirto: at('tirto', 170, 220, TOP), glassBig: at('product', 122, 240, TOP),
     factory: at('road', 90, 180, TOP), offTruck: onPaper(.18, -1.5),
@@ -414,17 +414,17 @@ export function build(ctx) {
   const P_ = (s, o) => { const m = pill(world, s, { h: .034, size: 44, font: K.SANS, wt: 800, ...o }); m.castShadow = false; m.renderOrder = 3; m.label = s; return m; };
   const pills = [
     { m: P_('MEREK LAIN', { bg: C.red }), t0: T.lain, t1: T.reply - .3, p: () => at('shelf', 160, 40, .1) },
-    { m: P_('AQUA?', { bg: C.ink }), t0: T.aquaQ, t1: T.hopB[0][0] - .05, p: () => hero.root.position.clone().add(V(0, .16, 0)) },
+    { m: P_('AQUA?', { bg: C.ink }), t0: T.aquaQ, t1: T.hopB[0][0] - .05, p: () => hero.root.position.clone().add(V(0, .13, 0)) },
     { m: P_('SATU NAMA UNTUK BERBAGAI MEREK!', { bg: C.accent, h: .03 }), t0: T.satu, t1: T.hopB[0][0] + .3, p: () => at('shelf', 160, 120, .2) },
-    { m: P_('50+ TAHUN'), t0: T.y50, t1: T.hopC[0][0], p: () => P.glassB.clone().add(V(-.03, .17, 0)) },
+    { m: P_('50+ TAHUN'), t0: T.y50, t1: T.hopC[0][0], p: () => P.glassB.clone().add(V(-.02, .03, .1)) },
     { m: P_('1973'), t0: T.y1973, t1: T.hopD[0][0] - .2, p: () => P.bekasi.clone().add(V(.07, .1, 0)) },
     { m: P_('BELUM UMUM', { bg: C.red }), t0: T.belum, t1: T.hopD[0][0] + .2, p: () => at('mapC', 240, 120, .12) },
     { m: P_('PRAKTIS', { bg: C.green }), t0: T.praktis, t1: T.hopF[0][0], p: () => at('tirto', 170, 60, .2) },
     { m: P_('HIGIENIS', { bg: C.green }), t0: T.higienis, t1: T.hopF[0][0], p: () => at('tirto', 170, 60, .155) },
     { m: P_('1974'), t0: T.y1974, t1: T.glassBig, p: () => at('product', 250, 60, .1) },
-    { m: P_('950 ML'), t0: T.ml, t1: T.hopG[0][0], p: () => P.glassBig.clone().add(V(.07, .2, 0)) },
+    { m: P_('950 ML'), t0: T.ml, t1: T.beliAir - .15, p: () => P.glassBig.clone().add(V(.07, .2, 0)) },
     { m: P_('TIDAK MUDAH', { bg: C.red }), t0: T.susah, t1: T.hopG[0][0], p: () => at('product', 250, 40, .14) },
-    { m: P_('BELI AIR PUTIH?', { bg: C.ink }), t0: T.beliAir, t1: T.hopG[0][0], p: () => hero.root.position.clone().add(V(0, .16, 0)) },
+    { m: P_('BELI AIR PUTIH?', { bg: C.ink }), t0: T.beliAir, t1: T.hopG[0][0], p: () => P.glassBig.clone().add(V(.04, .03, .11)) },
     { m: P_('DIPERCAYA', { bg: C.green }), t0: T.percaya, t1: T.stops[0] - .2, p: () => truck.root.position.clone().add(V(0, .225, 0)) },
   ];
 
@@ -545,7 +545,7 @@ export function build(ctx) {
       hero.set({ pos, e: P0.e, hinge: P0.hinge, sq: squash(t, lands, offs, air) * P0.sq * idle.sq * stampSq, yaw: dir && air !== null ? clamp(Math.atan2(dir.x, dir.z) * .3, -.4, .4) : .1, scale: t > T.finale ? 1 + .3 * ss(seg(t, T.finale, T.finale + .8)) : 1 });
     }
     // A: warung shelf bottles
-    shelfB.forEach((m, i) => popAt(m, t, T.bottles[i], at('shelf', 62 + i * 98, 160, TOP), { sq: beatBounce(t, T.bottles[i] + .6, DUR, .006, .2 * i).sq, yaw: -.1 }));
+    shelfB.forEach((m, i) => popAt(m, t, T.bottles[i], at('shelf', 62 + i * 98, 196, TOP), { sq: beatBounce(t, T.bottles[i] + .6, DUR, .006, .2 * i).sq, yaw: -.1 }));
     // B: glass then plastic, half a century
     popAt(glassB, t, T.glass, P.glassB, { yaw: .2, sq: beatBounce(t, T.glass + .6, DUR, .005, .1).sq });
     popAt(modernB, t, T.modern, P.modernB, { yaw: .3, sq: beatBounce(t, T.modern + .6, DUR, .005, .3).sq });

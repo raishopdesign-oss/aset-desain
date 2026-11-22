@@ -10,7 +10,7 @@ export const KEYS = [
   [9.5, 'shelf', .84, -.25, .66, 38, null, R],
   [10.2, 'A', 1.0, .05, 1.0, 38],
   [13.3, 'A', 1.02, .04, 1.02, 38, null, R],
-  [14.2, 'hero', .62, -.1, .5, 38],
+  [14.2, 'hero', .66, -.1, .95, 38],
   [15.1, 'AS', 1.2, 0, .85, 38],
   [16.6, 'AS', 1.22, 0, .86, 38, null, R],
   // the search card: Aqua is a brand, Latin for water; glass then plastic
