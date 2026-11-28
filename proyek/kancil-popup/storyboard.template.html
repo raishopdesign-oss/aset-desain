@@ -1,0 +1,127 @@
+<title>Kancil dan Buaya Storyboard</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700&family=Work+Sans:wght@400;500;600&display=swap">
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js" } }</script>
+<style>
+  /* Layout: a storyboard sheet; panels in a 2-up grid (1-up on phones), each a 16:9 still over its production notes */
+  :root {
+    --bg: #efe6d6; --sheet: #f8f2e6; --fg: #2a2219; --muted: #6d5f4e; --rule: #d8cbb5; --accent: #2f6753; --ink2: #b9682d;
+    --display: "Fraunces", Georgia, "Times New Roman", serif; --body: "Work Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #17130e; --sheet: #211b14; --fg: #efe4d2; --muted: #b3a38c; --rule: #3b3226; --accent: #8cc4a6; --ink2: #e39a5d; color-scheme: dark } }
+  :root[data-theme="dark"] { --bg: #17130e; --sheet: #211b14; --fg: #efe4d2; --muted: #b3a38c; --rule: #3b3226; --accent: #8cc4a6; --ink2: #e39a5d; color-scheme: dark }
+  body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.5; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 32px 56px; display: grid; gap: 28px; }
+  header { display: grid; gap: 6px; }
+  .eyebrow { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  h1 { font-family: var(--display); font-weight: 700; font-size: clamp(30px, 5vw, 48px); line-height: 1.05; margin: 0; text-wrap: balance; }
+  .lede { max-width: 68ch; margin: 0; color: var(--muted); }
+  .status { font-size: 13px; color: var(--muted); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .status button { font: inherit; font-weight: 600; color: var(--fg); background: var(--sheet); border: 1px solid var(--rule); border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+  .status button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 24px; }
+  @media (max-width: 760px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+  .panel { display: grid; gap: 12px; min-width: 0; }
+  .still { position: relative; aspect-ratio: 16 / 9; max-width: 100%; background: #0b0907; border-radius: 4px; overflow: hidden; box-shadow: 0 1px 0 var(--rule), 0 10px 30px -18px rgba(0,0,0,0.6); }
+  .still img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .still .tc { position: absolute; left: 10px; top: 8px; font: 600 11px/1 var(--body); letter-spacing: 0.08em; color: #f3e8d4; background: rgba(10,8,6,0.55); padding: 5px 7px; border-radius: 3px; font-variant-numeric: tabular-nums; }
+  .head { display: flex; align-items: baseline; gap: 12px; }
+  .num { font-family: var(--display); font-weight: 700; font-size: 30px; line-height: 1; color: var(--ink2); }
+  .time { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; }
+  .words { font-family: var(--display); font-size: 20px; font-weight: 700; line-height: 1.2; }
+  dl { margin: 0; display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 6px 12px; font-size: 14px; }
+  dt { color: var(--muted); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; padding-top: 2px; }
+  dd { margin: 0; }
+  section.notes { background: var(--sheet); border: 1px solid var(--rule); border-radius: 6px; padding: 20px max(16px, 2vw); display: grid; gap: 10px; }
+  section.notes h2 { font-family: var(--display); font-size: 22px; margin: 0; }
+  section.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 80ch; }
+  canvas#c { position: fixed; left: -99999px; top: 0; width: 192px; height: 108px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Paper Pop-Up · storyboard · 11.5 detik · 1920×1080</div>
+    <h1>Kancil dan Buaya</h1>
+    <p class="lede">Buku pop-up di meja kayu, diterangi lampu meja. Tiga halaman dan satu tarikan tab: kancil ingin menyeberang, menipu para buaya agar berbaris, lalu melompati punggung mereka sambil berhitung sampai tiba di pohon buah di seberang.</p>
+    <div class="status"><span id="status">Gambar di bawah dirender dari kode adegan yang sama (16 sampel). Menyiapkan render ulang di browser…</span><button id="again" type="button" hidden>Render ulang</button></div>
+  </header>
+
+  <div class="grid" id="grid"></div>
+
+  <section class="notes">
+    <h2>Fakta dan angka yang saya asumsikan</h2>
+    <ul>
+      <li>Versi cerita: kancil ingin makan buah di seberang sungai, lalu berbohong bahwa Raja menyuruhnya menghitung semua buaya. Raja hanya ditampilkan sebagai gulungan surat bermahkota, tanpa nama (sebagian versi menyebut Raja Sulaiman).</li>
+      <li>Jumlah buaya di "jembatan": empat, agar angka besar tetap terbaca di layar ponsel. Dalam dongeng jumlahnya banyak dan tidak disebut pasti.</li>
+      <li>Buahnya digambar sebagai buah merah bergerombol (seperti rambutan). Versi lain menyebut timun atau buah-buahan secara umum.</li>
+      <li>Teks memakai bahasa Indonesia: "Kancil ingin menyeberang.", "“Berbaris! Kuhitung!”", "Satu, dua, tiga, empat…". Angka 1–4 muncul di kartu bundar saat kancil mendarat di tiap buaya.</li>
+      <li>Kancil digambar sebagai pelanduk: kecil, kaki ramping, tanpa tanduk, dengan garis putih di leher. Buaya digambar dari samping, sebagian terendam air.</li>
+      <li>Lampu meja tetap dari kiri atas sesuai kartu gaya; sampul buku diganti kain merah bata dan kertas pelapis bermotif daun agar cocok dengan cerita hutan.</li>
+    </ul>
+  </section>
+</div>
+<canvas id="c" width="1920" height="1080"></canvas>
+
+<script type="module">
+import * as THREE from 'three';
+window.THREE = THREE;
+/*STAGE*/
+/*STYLE*/
+
+const BEATS = [
+  { t: 1.9, from: 0, to: 2.5, words: 'Kancil ingin menyeberang.',
+    moves: 'Buku sudah terbuka di halaman pertama: dinding hutan, rumpun alang-alang, pohon buah di kanan, dan kancil berdiri di tepi sungai. Kepala buaya yang mengintip dari air bergetar saat halaman mendarat.',
+    camera: 'Lensa panjang dari ±25° di atas, bergeser pelan dari kiri ke kanan.',
+    sound: 'Dengung ruangan, gemericik sungai, pad lembut; halaman mendarat (tepukan kertas, derit karton, ding D5); "plup" air saat buaya bergoyang.' },
+  { t: 4.55, from: 2.5, to: 5.3, words: '“Berbaris! Kuhitung!”',
+    moves: 'Halaman dibalik: adegan pertama terlipat rata, halaman dua tertarik berdiri dari lipatan tengah. Kancil mengangkat kaki seolah memberi perintah; gulungan surat bermahkota di lengan kertas bergoyang; buaya besar membuka rahang; mata-mata buaya berkumpul di sungai belakang.',
+    camera: 'Mundur sedikit saat halaman berbalik, lalu maju lagi sambil terus bergeser ke kanan.',
+    sound: 'Gemerisik dan desir halaman, mendarat (ding F#5); rahang buaya "tok" kayu rendah; kilau kecil untuk surat Raja.' },
+  { t: 6.95, from: 5.3, to: 7.0, words: 'Satu, dua, tiga, empat…',
+    moves: 'Halaman terakhir dibalik: empat buaya berjajar melintang sungai seperti jembatan, kancil di tepi kiri, pohon buah besar di tepi kanan. Tab tarik merah di depan masih tertutup.',
+    camera: 'Napas mundur kecil untuk balikan halaman, lalu mulai bergeser ke kanan.',
+    sound: 'Balikan halaman terakhir, mendarat (ding A5), lalu jeda singkat sebelum tab ditarik.' },
+  { t: 8.42, from: 7.0, to: 9.9, words: 'Satu, dua, tiga, empat…',
+    moves: 'Tab tarik meluncur keluar; kancil melompat lima kali di atas punggung buaya. Setiap kali mendarat, kartu angka (1, 2, 3, 4) naik dari celah di halaman di belakang buaya itu dan memantul.',
+    camera: 'Ikut bergeser ke kanan mengikuti lompatan, fokus pada barisan buaya.',
+    sound: 'Gesekan pita tab; desis tiap lompatan; dentum basah saat mendarat; "pop" kartu dan nada lonceng naik D5–E5–F#5–A5 untuk 1–4.' },
+  { t: 11.3, from: 9.9, to: 11.5, words: 'Satu, dua, tiga, empat…',
+    moves: 'Kancil mendarat di tepi kanan, tepat di bawah pohon buah. Keempat kartu angka berdiri di atas buaya yang tertipu. Bingkai terakhir ditahan.',
+    camera: 'Dorongan pelan ke depan dan ke kanan; pohon buah dan kancil memenuhi sisi kanan bingkai.',
+    sound: 'Pendaratan di rumput, akor "berhasil" D6 dan kilau; bed sungai dan pad memudar ke ujung.' },
+];
+const PRE = /*PRE*/[];
+const fmt = (s) => s.toFixed(1).replace('.', ',') + ' dtk';
+const grid = document.getElementById('grid');
+const imgs = BEATS.map((b, i) => {
+  const el = document.createElement('article'); el.className = 'panel';
+  el.innerHTML = `<div class="still"><img alt="Beat ${i + 1}: ${b.words}" src="${PRE[i] || ''}"><span class="tc">${b.t.toFixed(2)} s</span></div>
+    <div class="head"><span class="num">${i + 1}</span><span class="time">${fmt(b.from)} – ${fmt(b.to)}</span></div>
+    <div class="words">${b.words}</div>
+    <dl><dt>Gerak</dt><dd>${b.moves}</dd><dt>Kamera</dt><dd>${b.camera}</dd><dt>Suara</dt><dd>${b.sound}</dd></dl>`;
+  grid.appendChild(el); return el.querySelector('img');
+});
+
+const status = document.getElementById('status'), again = document.getElementById('again'), canvas = document.getElementById('c');
+let S = null;
+async function renderAll() {
+  again.hidden = true;
+  try {
+    if (!S) { status.textContent = 'Membangun buku pop-up…'; await new Promise((r) => setTimeout(r, 30)); S = await K.run(canvas, window.STYLE, { samples: 16 }); window.seek = (t) => S.seek(t); window.DURATION = window.STYLE.duration; }
+    for (let i = 0; i < BEATS.length; i++) {
+      status.textContent = `Merender panel ${i + 1} dari ${BEATS.length} (16 sampel)…`;
+      await new Promise((r) => setTimeout(r, 30));
+      S.seek(BEATS[i].t);
+      imgs[i].src = canvas.toDataURL('image/jpeg', 0.9);
+    }
+    status.textContent = 'Semua panel dirender langsung di browser ini dari kode adegan.';
+  } catch (e) {
+    status.textContent = 'Render langsung tidak jalan di browser ini (' + e.message + '). Gambar yang tampil adalah render dari kode yang sama.';
+  }
+  again.hidden = false;
+}
+again.addEventListener('click', renderAll);
+window.renderAll = renderAll;
+if (!new URLSearchParams(location.search).has('norender')) renderAll();
+</script>
